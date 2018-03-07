@@ -1,5 +1,6 @@
 '''
-def my_abs(x : int):
+###############################
+def my_abs(x : int):    # x : int 代表期望传入int类型参数
 	if not isinstance(x, (int, float)):
 		raise TypeError("bad operated type!")
 	if x >= 0:
@@ -7,17 +8,21 @@ def my_abs(x : int):
 	else:
 		return -x
 
-print(my_abs(23), my_abs(-34))
 
-def power(arg_1: int, n = 2, **temp) -> int:
+print(my_abs(23), my_abs(-34))
+###############################
+# 位置参数、默认参数、变长参数（字典形式存储）
+def power(arg_1: int, n = 2, **temp) -> int:    # 方法期望返回值为int类型
 	result = 1
 	while n >0:
 		result *= arg_1
 		n -= 1
 	print(temp)
 	return result
-print(power(5), power(5, 5, a = 3, b = 4))
 
+    
+print(power(5), power(5, 5, a = 3, b = 4))
+###############################
 def person(name, age, *, city='Beijing', job):
     print(name, age, city, job)
 
