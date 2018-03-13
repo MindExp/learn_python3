@@ -1,4 +1,3 @@
-'''
 ###############################
 def my_abs(x : int):    # x : int 代表期望传入int类型参数
 	if not isinstance(x, (int, float)):
@@ -11,7 +10,7 @@ def my_abs(x : int):    # x : int 代表期望传入int类型参数
 
 print(my_abs(23), my_abs(-34))
 ###############################
-# 位置参数、默认参数、变长参数（字典形式存储）
+# 位置参数、默认参数、命名关键字参数（字典形式存储）
 def power(arg_1: int, n = 2, **temp) -> int:    # 方法期望返回值为int类型
 	result = 1
 	while n >0:
@@ -23,13 +22,17 @@ def power(arg_1: int, n = 2, **temp) -> int:    # 方法期望返回值为int类
     
 print(power(5), power(5, 5, a = 3, b = 4))
 ###############################
+# '*'为可变参数，job = 'Engineer'为关键字参数
 def person(name, age, *, city='Beijing', job):
     print(name, age, city, job)
 
-person('hezhihai', 23, job = 'Engineer')
 
+person('hezhihai', 23, job = 'Engineer')
+###############################
+# 使用尾递归求解阶乘
 def fact(n: int)->int:
 	return fact_iter(n, re_temp = 1)
+
 
 def fact_iter(n_temp: int, re_temp: int):
 	if n_temp == 1:
@@ -37,15 +40,18 @@ def fact_iter(n_temp: int, re_temp: int):
 	else:
 		return fact_iter(n_temp - 1, re_temp * n_temp)
 
-print(fact(10))
 
+print(fact(10))
+###############################
+# 使用枚举enumerate
 for i, value in enumerate('zhihai He'):
 	print((i, value))
-
+###############################
+# 使用列表生成式
 print(list(range(1, 20, 3)))
 print([temp * temp for temp in range(1, 10)	if temp % 2 == 0])
 print([m + n for m in 'ABC' for n in 'abc'])
-
+###############################
 import os
 print([dirc for dirc in os.listdir()])
 print((temp * temp for temp in range(1, 10)	if temp % 2 == 0))
@@ -1144,4 +1150,3 @@ if __name__ == '__main__':
 ###############################
 ###############################
 add some extra information.
-'''
