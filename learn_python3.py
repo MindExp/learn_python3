@@ -55,12 +55,13 @@ print([m + n for m in 'ABC' for n in 'abc'])
 import os
 print([dirc for dirc in os.listdir()])
 print((temp * temp for temp in range(1, 10)	if temp % 2 == 0))
-
+# 构造生成器(generator)
 s = (x * x for x in range(5))
 print(s)
 for x in s:
     print(x)
-
+###############################
+# 如果一个函数定义中包含yield关键字，那么这个函数就不再是一个普通函数，而是一个generator
 def fib(max):
     n, a, b = 0, 0, 1
     while n < max:
@@ -73,7 +74,7 @@ f = fib(10)
 print('fib(10):', f)
 for x in f:
     print(x)
-
+###############################
 #使用Iterable
 for x in 'zhihai He':
 	print(x)
@@ -84,23 +85,24 @@ while True:
 	try:
 		#获取下一个值
 		print(next(it))
-	except StopIteration:
-		break
+	except StopIteration as e:
+        print(e.value)
+        break
 ###############################
 f = abs
 print(f(-21), f)
-
-
 ###############################
 from collections import Iterable
 
+
+# 使用lambda匿名函数
+# map将传入的函数依次作用到序列的每个元素，返回结果为一个Iterator。
 print(list(map(lambda x: x**2, range(1, 10, 2))))
 print(isinstance(range(1, 10), Iterable))
 ###############################
-
-
 def func(num):
 	return num * num
+
 
 it = map(func, list(range(1, 10, 2)))	#it为一个Iterator对象
 #generator属于Iterator
@@ -110,44 +112,52 @@ for i in list(it):
 while True:
 	try:
 		print('And ', next(it))
-	except StopIteration:
+	except StopIteration as e:
+        print(e)
 		break
 ###############################
 from functools import reduce
+
+
+# reduce函数对序列中的元素作累计效果运算，最后结果为一个值
 def fun_num(num_1, num_2):
 	return num_1 * 10 + num_2
 def add(num_1, num_2):
 	return num_1 + num_2
 print(reduce(fun_num, [1,2, 3, 4, 5]))
 print(reduce(add, list(range(1, 10))))
-
 ###############################
-
 #map对每一个迭代元素进行操作
 #reduce把结果继续和序列的下一个元素做累积计算
 from functools import reduce
+
 
 def str2int(str_temp):
 	dic = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
 	return dic.get(str_temp)	
 
+
 def fun_num(num_1, num_2):
 	return num_1 * 10 + num_2
 
+
 print(reduce(fun_num, map(str2int, '678')))
-
 ###############################
-
 from functools import reduce
+
 
 def my_sum(num_1, num_2):
 	return num_1 + num_2
+
+
 def sum_list(my_list):
 	return reduce(my_sum, my_list)
+
+
 print(sum_list(list(range(1, 100))))
 ###############################
-
 from functools import reduce
+
 
 def my_multi(num_1, num_2):
 	return num_1 * 10 + num_2
@@ -167,40 +177,41 @@ if abs(str2float('123.456') - 123.456) < 0.00001:
 else:
     print('测试失败!')
 ###############################
-
 #过滤器filter(function, iterable)实质为生成器(item for item in iterable if function(item))
 def get_odd(int_num):
 	return int_num % 2 == 0
+
+
 print(list(filter(get_odd, list(range(1, 20)))))
 print(list((item for item in range(1, 20) if item % 2 ==0)))
-
 ###############################
-
 #lambda为匿名函数
 from functools import reduce
 
+
 print(reduce(lambda str_1, str_2: str_1 + str_2, map(str, map(lambda temp: temp * temp, range(1, 20, 3)))))
 ###############################
-
 #strip()仅仅移除字符串头尾部条件字符
 def not_empty(str_temp):
 	return str_temp and str_temp.strip()
+
+
 print(list(filter(not_empty, [' zhihai He', '', ' ', 'He llo '])))
 ###############################
-#使用生成器生成1000以内所有奇数
+# 使用生成器生成1000以内所有奇数
 def odd_iter():
 	num = 1
 	while True:
 		num += 2
 		yield num
+
+
 for temp in odd_iter():
 	if temp < 1000:
 		print(temp)
 	else:
 		break
-
 ###############################
-
 #取所有奇数
 def odd_iter():
 	num = 1
@@ -208,17 +219,20 @@ def odd_iter():
 		num += 2
 		yield num
 
+
 def not_divisible(num_2):
 	return lambda x: x % num_2 > 0
+
 
 #素数生成器
 def primes():
 	yield 2
-	it = odd_iter()
+	it = odd_iter()	# 初始化一个序列
 	while True:
 		n = next(it)
 		yield n
 		it = filter(not_divisible(n), it)
+
 
 def print_primes(num ):
 	for temp in primes():
@@ -227,39 +241,43 @@ def print_primes(num ):
 		else:
 			break
 
-print_primes(10000)
-###############################
-#取回数
 
-#整数生成器
+print_primes(1000)
+###############################
+# 取回数
+# 构造整数生成器
 def num_iter():
 	num = 1
 	while True:
 		yield num
 		num += 1
+
 
 def is_huishu(num):
 	str_temp = str(num)
 	if len(str_temp) <= 1:
 		return True
 	else:
-		return str_temp[0] == str_temp[-1] and is_huishu(str_temp[1: -1])
+		return str_temp[0] == str_temp[-1] and is_huishu(str_temp[1: -1]) # 使用递归判定是否为回数
+
 
 def huishu(num):
 	it = filter(is_huishu, num_iter())
 	for temp in it:
-		if temp < num:
+		if temp < num:	# 结束条件
 			print(temp)
 		else:
 			break
+
+
 print(huishu(100000))
 ###############################
-
 def num_iter():
 	num = 1
 	while True:
 		yield num
 		num += 1
+
 
 def huishu(num):
 	for temp in filter(lambda num: str(num) == str(num)[: : -1], num_iter()):
@@ -267,12 +285,13 @@ def huishu(num):
 			print(temp)
 		else:
 			break
+
+
 huishu(100)
 ###############################
-
 #sorted(iterable, *, key=None, reverse=False)
-
 print(sorted(list(range(30, 0, -2))))
+print(sorted(list(range(30, 0, -2)), reverse = True))
 #分清函数调用func()与函数参数func
 #自定义排序，key指定的函数(映射)作用在每一个元素上
 print(sorted([23, 9, -20, -1, 34], key = abs))
@@ -282,9 +301,9 @@ dic = {1: 'f', 2: 'a', 3: 'z'}
 #字典默认按照关键字排序，key为一个映射
 print(sorted(dic), sorted(dic, key = lambda a: dic[a]))
 print(sorted([('Bob', 75, 's'), ('Adam', 92, 'a'), ('Bart', 66, 'b'), ('Lisa', 88, 'z')], key = lambda a: a[2]))
-
-
 ###############################
+# 使用函数作为返回值，当一个函数返回了另一个函数后，其内部的局部变量还被新函数引用
+# 使用闭包：返回闭包时牢记一点：返回函数不要引用任何循环变量，或者后续会发生变化的变量。
 def count():
     i = 1
 
@@ -297,7 +316,7 @@ def count():
         return g
     fs = []
     for i in range(1, 4):
-        fs.append(f(i))		# f(i)立刻被执行，因此i的当前值被传入f()
+        fs.append(f(i))	# f(i)立刻被执行，因此i的当前值被传入f()
     return fs
 
 
@@ -308,11 +327,10 @@ print(f1(), f2(), f3())
 from operator import itemgetter
 
 students = [('Bob', 75), ('Adam', 92), ('Bart', 66), ('Lisa', 88)]
-print(sorted(students, key = itemgetter(0)))
-print(sorted(students, key = lambda temp: temp[1]))
-print(sorted(students, key = itemgetter(1), reverse = True))
+print(sorted(students, key=itemgetter(0)))
+print(sorted(students, key=lambda temp: temp[1]))
+print(sorted(students, key=itemgetter(1), reverse=True))
 ###############################
-
 #将函数作为返回值
 def lazy_sum(*num):
     def sum():
@@ -330,20 +348,14 @@ f1 = lazy_sum(1, 2, 3)
 f2 = lazy_sum(2, 3, 4, 5, 5)
 print(f1 == f2, f1(), f2())
 ###############################
-
-funcs = [lambda x, i=i: x*i for i in range(1, 10)]
-print(funcs[0](10))
+funcs_1 = [lambda x, i=i: x*i for i in range(1, 10)]  # 生成列表中每个元素均为一个匿名函数
+print(funcs_1[1], funcs_1[2](100))
+funcs_2 = [lambda x: x*i for i in range(1, 10)]	# 在闭包中引用了循环变量
+print(funcs_2[1], funcs_2[2](100))
 ###############################
-
-funcs = [lambda x: x*i for i in range(1, 10)]
-print(funcs[0](10))
-###############################
-
 # 返回的函数并没有立刻执行，而是直到调用了f1()才执行
-# 结果全部都是9！原因就在于返回的函数引用了变量i，但它并非立刻执行。等到3个函数都返回时，它们所引用的变量i已经变成了3，因此最终结果为9。
+# 结果全部都是9，原因就在于返回的函数引用了循环变量i，但它并非立刻执行。等到3个函数都返回时，它们所引用的变量i已经变成了3，因此最终结果为9。
 # 返回闭包时牢记一点：返回函数不要引用任何循环变量，或者后续会发生变化的变量。
-
-
 def count():
     fs = []
     for i in range(1, 4):
@@ -357,7 +369,7 @@ f1, f2, f3 = count()
 print(f1, f2, f3)
 print(f1(), f2(), f3())
 ###############################
-
+# 规避闭包中引用循环变量带来的错误
 def count():
     fs = []
     for i in range(1, 4):
@@ -370,9 +382,7 @@ def count():
 f1, f2, f3 = count()
 print(f1, f2, f3)
 print(f1(), f2(), f3())
-
 ###############################
-
 def count():
     def f(j):
         def g():
@@ -388,20 +398,19 @@ f1, f2, f3 = count()
 print(f1, f2, f3)
 print(f1(), f2(), f3())
 ###############################
-
 def count():
     fs = []
     for i in range(1,4):
-        def f(j):
-            return lambda j:j*j
+        def f(j):	# 此处参数j无任何实际意义
+            return lambda j: j*j # 返回带参数函数
         fs.append(f(i))
     return fs
 
 
-a,b,c = count()
+a, b, c = count()
 print(a(0), a(1), a(2), a(3), a(4))
+print(a(23), a(12), b(2), c(5))
 ###############################
-
 def count():
     fs = []
     for i in range(1,4):
@@ -414,19 +423,6 @@ def count():
 a,b,c = count()
 print(a(), b(), c())
 ###############################
-
-def count():
-    fs = []
-    for i in range(1,4):
-        def f(j):
-        	return lambda j:j*j
-        fs.append(f(i))
-    return fs
-
-
-a,b,c = count()
-print(a(23), a(12), b(2), c(5))
-###############################
 func = lambda x: x**2
 print(func, func(23))
 ###############################
@@ -438,7 +434,7 @@ def my_func():
 
 temp_func = my_func
 temp_func()
-print(temp_func.__name__, my_func.__name__)
+print(temp_func.__name__, my_func.__name__, temp_func == my_func)
 ###############################
 # 在代码运行期间动态增加功能的方式，称之为“装饰器”（Decorator）
 # 借助Python的@语法自定义装饰器
@@ -446,25 +442,24 @@ print(temp_func.__name__, my_func.__name__)
 import functools
 
 
-def my_wrapper(func):
-    @functools.wraps(func)
+def my_wrapper(my_func):
+    @functools.wraps(my_func)
     def wrapper(*args, **kw):
         print('using my_wrapper.')
-        return func(*args, **kw)
+        return my_func(*args, **kw)
     return wrapper
 
 
 @my_wrapper
-def my_func():
+def func():
     print('called my_func()')
     return 'called succeed!'
 
 
-temp_func = my_func
+temp_func = func
 print(temp_func.__name__, '\n', temp_func())
 ###############################
 # 带参数装饰器
-
 import functools
 
 
@@ -486,15 +481,14 @@ def my_func():
 print(my_func.__name__)
 print(my_func())
 ###############################
+# 通过修改默认参数值，使用partial构造新的函数
 import functools
 
 
-# 使用partial构造偏函数
 int2 = functools.partial(int, base=2)
-print(int2('10000'), int('10000'), int('10000', 8))
+print(int2('10000'), int('10000', 2), int('10000'), int('10000', 8))
 kw = {'base': 2}
 print(int('1000', **kw))
-
 ###############################
 import functools
 
@@ -518,7 +512,6 @@ def my_func(n=10):
 
 
 my_func(100)()
-
 ###############################
 import functools
 
@@ -537,7 +530,7 @@ def log(text):
     else:
         f = text
         text = ''
-        return decorator(f)
+        return decorator(f)  # 对原函数f()使用装饰器
 
 
 @log
@@ -546,7 +539,7 @@ def f():
 
 
 f()
-###############################
+###############################(here)
 # 每一个包目录下面都会有一个__init__.py的文件，这个文件是必须存在的，否则，Python就把这个目录当成普通目录，而不是一个包。
 # __init__.py可以是空文件，也可以有Python代码，因为__init__.py本身就是一个模块，而它的模块名就是mycompany
 # 任何模块代码的第一个字符串都被视为模块的文档注释；
