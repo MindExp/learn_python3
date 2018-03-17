@@ -731,8 +731,8 @@ except AttributeError:
 ###############################
 class Student(object):
     __slots__ = ('name', 'age')
-# 使用__slots__特殊变量限制类实例能添加的属性
-# 但是对继承他的子类不起作用,除非在子类中也定义__slots__，这样，子类实例允许定义的属性就是自身的__slots__加上父类的__slots__
+# 使用__slots__特殊变量限制类实例随意添加类属性，但是对继承他的子类不起作用
+# 除非在子类中也定义__slots__特殊变量，这样，子类实例允许定义的属性就是自身的__slots__加上父类的__slots__
 
 
 bruce = Student()
@@ -741,7 +741,7 @@ bruce.age = 23
 try:
     bruce.address = 'Sichuan'
 except AttributeError:
-    raise AttributeError('Bind attribute failed.')
+    raise AttributeError('Binding attribute failed.')
 print(dir(bruce))
 
 ###############################
@@ -758,13 +758,15 @@ class Student(object):
     # 通过python内置的property装饰器将方法变成属性调用
     @property
     def set_score(self):
-        return self.set_score
+        pass
+        return self.set_score   # 在作为setter时，此处并无实际意义，但如果直接使用object.set_score，而不是作为赋值语句会导致overflow
 
-    @set_score.setter
+    # 使用装饰器对setter进行数值检查
+    @set_score.setter   # 定义setter
     def set_score(self, score):
         if not isinstance(score, int):
             raise ValueError('Score must be an integer.')
-        if score <0 or score >100:
+        if score < 0 or score > 100:
             raise ValueError('Score must between 0 ~ 100.')
         self.score = score
 
@@ -775,14 +777,14 @@ class Student(object):
         return self.age
 
     # 通过python内置的property装饰器将方法变成属性调用
-    @property
+    @property   # 定义getter
     def get_score(self):
         return self.score
 
 
 bruce = Student('Bruce', 24)
 print(bruce.get_name(), bruce.get_age())
-# set_score当属性使用，通过装饰器进行数值检查
+# set_score()方法当属性使用，通过装饰器进行数值检查
 bruce.set_score = 100
 print(bruce.get_score, bruce.score)
 
@@ -830,7 +832,7 @@ try:
     # __age为对象限定属性(__slots__)，故无法在外部访问，即使是形式访问也不行
     bruce.__age = 100
 except AttributeError:
-    raise AttributeError('Student object has no attribute __age.')
+    raise AttributeError('Student object has no attribute __age.')  # 抛出AttributeError错误
 print(bruce.name)
 # set_score当属性使用，通过装饰器进行数值检查
 bruce.score = 100
@@ -838,7 +840,6 @@ print(bruce.score)
 
 ###############################
 # Python允许使用多重继承，因此，MixIn就是一种常见的设计
-###############################
 class Student(object):
     def __init__(self, name):
         self.name = name
@@ -854,11 +855,11 @@ class Student(object):
 
 
 # 匿名对象
-print(Student('Bruce'))
+print(Student('Bruce')) # 默认自动调用__str__函数
 jack = Student('Jack')
 print(jack)
 
-###############################
+###############################(here)
 # 定义可迭代对象，主要实现一个对象可迭代化__iter__()并实现__next__()方法
 class Fib(object):
     def __init__(self):
