@@ -1,3 +1,4 @@
+
 ###############################
 def my_abs(x : int):    # x : int 代表期望传入int类型参数
 	if not isinstance(x, (int, float)):
@@ -9,6 +10,7 @@ def my_abs(x : int):    # x : int 代表期望传入int类型参数
 
 
 print(my_abs(23), my_abs(-34))
+
 ###############################
 # 位置参数、默认参数、命名关键字参数（字典形式存储）
 def power(arg_1: int, n = 2, **temp) -> int:    # 方法期望返回值为int类型
@@ -28,6 +30,7 @@ def person(name, age, *, city='Beijing', job):
 
 
 person('hezhihai', 23, job = 'Engineer')
+
 ###############################
 # 使用尾递归求解阶乘
 def fact(n: int)->int:
@@ -42,15 +45,18 @@ def fact_iter(n_temp: int, re_temp: int):
 
 
 print(fact(10))
+
 ###############################
 # 使用枚举enumerate
 for i, value in enumerate('zhihai He'):
 	print((i, value))
+
 ###############################
 # 使用列表生成式
 print(list(range(1, 20, 3)))
 print([temp * temp for temp in range(1, 10)	if temp % 2 == 0])
 print([m + n for m in 'ABC' for n in 'abc'])
+
 ###############################
 import os
 print([dirc for dirc in os.listdir()])
@@ -60,6 +66,7 @@ s = (x * x for x in range(5))
 print(s)
 for x in s:
     print(x)
+
 ###############################
 # 如果一个函数定义中包含yield关键字，那么这个函数就不再是一个普通函数，而是一个generator
 def fib(max):
@@ -539,29 +546,30 @@ def f():
 
 
 f()
-###############################(here)
-# 每一个包目录下面都会有一个__init__.py的文件，这个文件是必须存在的，否则，Python就把这个目录当成普通目录，而不是一个包。
-# __init__.py可以是空文件，也可以有Python代码，因为__init__.py本身就是一个模块，而它的模块名就是mycompany
-# 任何模块代码的第一个字符串都被视为模块的文档注释；
-# mycompany
-#  ├─ web
-#  │  ├─ __init__.py
-#  │  ├─ utils.py
-#  │  └─ www.py
-#  ├─ __init__.py
-#  ├─ abc.py
-#  └─ xyz.py
 ###############################
-'module doc'
+'''
+每一个包目录下面都会有一个__init__.py的文件，这个文件是必须存在的，否则，Python就把这个目录当成普通目录，而不是一个包。
+__init__.py可以是空文件，也可以有Python代码，因为__init__.py本身就是一个模块，而它的模块名就是mycompany
+任何模块代码的第一个字符串都被视为模块的文档注释；
+mycompany
+ ├─ web
+ │  ├─ __init__.py
+ │  ├─ utils.py
+ │  └─ www.py
+ ├─ __init__.py
+ ├─ abc.py
+ └─ xyz.py
+ '''
+###############################
+'module doc'    # 模块第一个字符串被视为模块文档注释
 
 
 __author__ = 'MindExp'
 
 import sys
 
-print(sys.argv, sys.path, sys.modules)
-print(__name__)
-
+print(sys.argv, '\n', sys.path, '\n', sys.modules)
+print(__name__, __author__)
 ###############################
 # object代表Student的父类
 # 在类中定义的函数第一个参数必须为self，其他特性与普通函数一致(可使用位置参数，默认参数，变长参数，关键字参数，命名关键字参数)
@@ -599,7 +607,6 @@ bruce.print_stu_info()
 # 试图修改private变量，能成功，但是强烈建议不要这么做，因为在不同版本python解释器中__stu_id会被改成不同的变量名
 bruce._Student__stu_id = '668'
 bruce.print_stu_info()
-
 ###############################
 class Animal(object):
     def run(self):
@@ -608,9 +615,12 @@ class Animal(object):
     def __len__(self):
         return 100
 
+    def len(self):
+        return 10
 
-class Cat(Animal):
-    def run(self):
+
+class Cat(Animal):  # 使用继承
+    def run(self):  # 重写父类run()函数
         print('Cat is running.')
 
     def voice(self):
@@ -618,7 +628,7 @@ class Cat(Animal):
 
 
 class Car(object):
-    def run(self):
+    def run(self):  # 重写父类run()函数
         print('Car is running.')
 
 
@@ -626,7 +636,7 @@ animal = Animal()
 
 
 def run_twice(animal):
-    animal.run()
+    animal.run()    # 多态
     animal.run()
 
 
@@ -644,8 +654,7 @@ run_twice(car)
 print(type(123), type('123'), type(12.3), type(cat), type(animal), type(car))
 # 使用dir()函数获取一个对象所有的属性和方法
 print(dir(cat))
-print(len(cat))
-
+print(len(cat))  # 实质调用系统中__len__()函数
 ###############################
 class Animal(object):
     def run(self):
@@ -675,9 +684,11 @@ print(car.price, car.__getattribute__('price'))
 print(getattr(car, 'color'), car.__getattribute__('color'))
 # 获取对象方法有三种
 print(car.run, getattr(car, 'run'), car.__getattribute__('run'))
+# 在不带括号运算中，and运算符优先级大于or运算符优先级
+# 在and运算符中（statement_1 and statement_2）如果，statement_1为真，则返回statement_2，否则返回statement_1
+# 在or运算符中（statement_1 or statement_2）如果，statement_1为真，则返回statement_1，否则返回statement_2
 print((tuple and list), isinstance([1,2,3],(tuple and list)))
 print((list and tuple), isinstance([1,2,3],(list and tuple)))
-
 ###############################
 # 类属性与实例属性
 class Student(object):
@@ -699,8 +710,6 @@ def my_private_func():
 
 # 绑定类方法
 Student.get_name = get_name
-
-
 bruce = Student()
 print(bruce.get_name(), bruce.count, Student.name, Student.count)
 # 添加实例属性，对类属性无影响，但实例属性优先级高于类属性
@@ -717,7 +726,7 @@ print(jack.my_private_func())
 try:
     print(bruce.my_private_func())
 except AttributeError:
-    raise AttributeError('Object function does not bind.')
+    raise AttributeError('Object function has not bound.')
 
 ###############################
 class Student(object):
