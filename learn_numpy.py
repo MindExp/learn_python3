@@ -486,5 +486,128 @@ array([[ 2., 2., 1.],
 >>> np.cross(a, b)
 array([ 4., -1., -6.])
 
+>>> a = np.array([[4, 2, 0], [9, 3, 7], [1, 2, 1]], float)
+>>> a
+array([[ 4., 2., 0.],
+[ 9., 3., 7.],
+[ 1., 2., 1.]])
+>>> np.linalg.det(a)
+-48.00000000000003
 
+# Compute the eigenvalues and right eigenvectors of a square array.
+>>> vals, vecs = np.linalg.eig(a)
+>>> vals
+array([ 9. , 2.44948974, -2.44948974])
+>>> vecs
+array([[-0.3538921 , -0.56786837, 0.27843404],
+[-0.88473024, 0.44024287, -0.89787873],
+[-0.30333608, 0.69549388, 0.34101066]])
+
+# Compute the (multiplicative) inverse of a matrix.
+>>> b = np.linalg.inv(a)
+>>> b
+array([[ 0.14814815, 0.07407407, -0.25925926],
+[ 0.2037037 , -0.14814815, 0.51851852],
+[-0.27777778, 0.11111111, 0.11111111]])
+>>> np.dot(a, b)
+array([[ 1.00000000e+00, 5.55111512e-17, 2.22044605e-16],
+[ 0.00000000e+00, 1.00000000e+00, 5.55111512e-16],
+[ 1.11022302e-16, 0.00000000e+00, 1.00000000e+00]])
+
+# Singular Value Decomposition.
+>>> a = np.array([[1, 3, 4], [5, 2, 3]], float)
+>>> U, s, Vh = np.linalg.svd(a)
+>>> U
+array([[-0.6113829 , -0.79133492],
+[-0.79133492, 0.6113829 ]])
+>>> s
+array([ 7.46791327, 2.86884495])
+>>> Vh
+array([[-0.61169129, -0.45753324, -0.64536587],
+[ 0.78971838, -0.40129005, -0.46401635],
+[-0.046676 , -0.79349205, 0.60678804]])
+
+# Find the coefficients of a polynomial with the given sequence of roots.
+>>> np.poly([-1, 1, 1, 10])
+# return array gives the coefficients corresponding to x**4 - 11x**3 +9x**2 +11x -10.
+array([ 1, -11, 9, 11, -10])
+
+# Return the roots of a polynomial with coefficients given in p.
+>>> np.roots([1, 4, -2, 3])
+array([-4.57974010+0.j , 0.28987005+0.75566815j,
+0.28987005-0.75566815j])
+
+# Return an antiderivative (indefinite integral) of a polynomial.
+>>> np.polyint([1, 1, 1, 1])
+array([ 0.25 , 0.33333333, 0.5 , 1. , 0. ])
+
+# Return the derivative of the specified order of a polynomial.
+>>> np.polyder([1./4., 1./3., 1./2., 1., 0.])
+array([ 1., 1., 1., 1.])
+
+>>> np.polyval([1, -2, 0, 2], 4)
+34
+
+# Least squares polynomial fit.
+>>> x = [1, 2, 3, 4, 5, 6, 7, 8]
+>>> y = [0, 2, 1, 3, 7, 10, 11, 19]
+>>> np.polyfit(x, y, 2)
+array([ 0.375 , -0.88690476, 1.05357143])
+
+>>> a = np.array([1, 4, 3, 8, 9, 2, 3], float)
+>>> np.median(a)
+3.0
+
+>>> a = np.array([[1, 2, 1, 3], [5, 3, 1, 8]], float)
+>>> c = np.corrcoef(a)
+# Return Pearson product-moment correlation coefficients.
+>>> c
+array([[ 1. , 0.72870505],
+[ 0.72870505, 1. ]])
+
+>>> np.cov(a)
+# Estimate a covariance matrix, given data and weights.
+array([[ 0.91666667, 2.08333333],
+[ 2.08333333, 8.91666667]])
+
+>>> np.random.seed(293423)
+
+>>> np.random.rand(5)
+array([ 0.40783762, 0.7550402 , 0.00919317, 0.01713451, 0.95299583])
+
+>>> np.random.rand(2,3)
+array([[ 0.50431753, 0.48272463, 0.45811345],
+[ 0.18209476, 0.48631022, 0.49590404]])
+>>> np.random.rand(6).reshape((2,3))
+array([[ 0.72915152, 0.59423848, 0.25644881],
+[ 0.75965311, 0.52151819, 0.60084796]])
+
+>>> np.random.random()
+0.70110427435769551
+
+>>> np.random.randint(5, 10)
+9
+
+>>> np.random.poisson(6.0)
+# Draw samples from a Poisson distribution.
+5
+
+>>> np.random.normal(1.5, 4.0)
+# Draw random samples from a Gaussian distribution, in which u = 1.5 and o = 4.0.
+0.83636555041094318
+
+>>> np.random.normal()
+# Draw random samples from a normal (Gaussian) distribution.
+0.27548716940682932
+
+>>> np.random.normal(size=5)
+array([-1.67215088, 0.65813053, -0.70150614, 0.91452499, 0.71440557])
+
+>>> l = range(10)
+>>> l
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> np.random.shuffle(l)
+# Modify a sequence in-place by shuffling its contents.
+>>> l
+[4, 9, 5, 0, 2, 7, 6, 8, 1, 3]
 """
