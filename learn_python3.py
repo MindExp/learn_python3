@@ -859,10 +859,10 @@ print(Student('Bruce')) # 默认自动调用__str__函数
 jack = Student('Jack')
 print(jack)
 
-###############################(here)
+###############################
 # 定义可迭代对象，主要实现一个对象可迭代化__iter__()并实现__next__()方法
 class Fib(object):
-    def __init__(self):
+    def __init__(selfhere):
         self.a, self.b = 1, 1
 
     def __iter__(self):
@@ -909,6 +909,7 @@ class Student(object):
         self._name = name
 
     @property
+    # 将name方法属性化
     def name(self):
         return self._name
 
@@ -986,7 +987,7 @@ class Color(Enum):
 
 
 print(Color.RED, str(Color.RED), repr(Color.RED), type(Color.RED))
-print(isinstance(Color.RED, Color), isinstance(Color.RED, Enum), isinstance(Color, Enum))
+print(isinstance(Color.RED, Color), isinstance(Color.RED, Enum), isinstance(Color, Enum), type(Color), type(Enum))
 print(Color.RED.name, Color.RED.value)
 # Enumerations support iteration
 for color in Color:
@@ -994,26 +995,30 @@ for color in Color:
 print(Color['BLACK'], Color(2), Color(2).name)
 
 ###############################
-def func(self, name = 'MindExp'):
+def func(self, name='MindExp'):
     print('Hello, %s' % name)
 
 
 # 使用type动态创建类,，type(name, bases, dict)
-Hello = type('Hello', (object,), dict(hello = func))
+Hello = type('Hello', (object,), dict(hello=func))
 h = Hello()
 h.hello()
-print(type(Hello), type(h))
+print(type(Hello), type(h), h, h.hello)
 
 ###############################
 # 回看使用元类
 
 ###############################
-import logging;
+import logging
+
+
+# 使用logging，有debug，info，warning，error等几个级别，最后统一控制输出哪个级别的信息
+logging.basicConfig(level=logging.INFO)     # 指定记录信息的级别
 try:
     pass
 # 捕获错误信息
 except ValueError:
-    # 抛出错误信息
+    # 抛出错误信息,停止运行
     raise ValueError('ValueError.')
     pass
 except ZeroDivisionError as e:
@@ -1024,7 +1029,6 @@ except ZeroDivisionError as e:
 else:
     pass
 
-# 使用logging，有debug，info，warning，error等几个级别，最后统一控制输出哪个级别的信息
 ###############################
 # TDD：Test-Driven Development
 # py_01.py
@@ -1088,14 +1092,14 @@ class TestDict(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    # 单元测试
     unittest.main()
 
 ###############################
 class Dict(dict):
     # doctest严格按照Python交互式命令行的输入和输出来判断测试结果是否正确。只有测试异常的时候，可以用...表示中间一大段烦人的输出。
-    '''
+    """
     Simple dict but also support access as x.y style.
-
     >>> d1 = Dict()
     >>> d1['x'] = 100
     >>> d1.x
@@ -1114,7 +1118,7 @@ class Dict(dict):
     Traceback (most recent call last):
         ...
     AttributeError: 'Dict' object has no attribute 'empty'
-    '''
+    """
     def __init__(self, **kw):
         super(Dict, self).__init__(**kw)
 
@@ -1130,26 +1134,55 @@ class Dict(dict):
 
 if __name__ == '__main__':
     import doctest
+    # 文档测试
     doctest.testmod()
 
 ###############################
+# 正则表达式也是用字符串表示的，强烈建议使用Python的r前缀，就不用考虑转义的问题了
+"""
+>>> import re
+>>> re.match(r'^\d{3}\-\d{3,8}$', '010-12345')
+<_sre.SRE_Match object; span=(0, 9), match='010-12345'>
+>>> re.match(r'^\d{3}\-\d{3,8}$', '010 12345')
+>>>
+
+>>> re.split(r'[\s\,\;]+', 'a,b;; c  d')
+['a', 'b', 'c', 'd']
+
+# 用()表示的就是要提取的分组group
+>>> m = re.match(r'^(\d{3})-(\d{3,8})$', '010-12345')
+>>> m
+<_sre.SRE_Match object; span=(0, 9), match='010-12345'>
+# 注意group(0)永远是原始字符串，group(1)、group(2)……表示第1、2、……个子串
+>>> m.group(0)
+'010-12345'
+>>> m.group(1)
+'010'
+>>> m.group(2)
+'12345'
+
+# 贪婪匹配
+>>> re.match(r'^(\d+)(0*)$', '102300').groups()
+('102300', '')
+# 非贪婪匹配
+>>> re.match(r'^(\d+?)(0*)$', '102300').groups()
+('1023', '00')
+
+>>> import re
+# 预编译,编译后生成Regular Expression对象，由于该对象自己包含了正则表达式，所以调用对应的方法时不用给出正则字符串
+>>> re_telephone = re.compile(r'^(\d{3})-(\d{3,8})$')
+# 使用：
+>>> re_telephone.match('010-12345').groups()
+('010', '12345')
+>>> re_telephone.match('010-8086').groups()
+('010', '8086')
+
+"""
+# match()方法判断是否匹配，如果匹配成功，返回一个Match对象，否则返回None
+test = '用户输入的字符串'
+if re.match(r'正则表达式', test):
+    print('ok')
+else:
+    print('failed')
 
 ###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-###############################
-add some extra information.
