@@ -16,7 +16,7 @@
 1.1998年基于梯度学习的**LeNet**网络应用于邮政手写数字识别系统。
 2. 2012年**Alex-Net**在ImageNet竞赛夺冠。
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-25_215234.bmp" width="50%" height="50%" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-25_215234.bmp" width="50%" height="50%" />
 </div>
 
 #### 1.2 基本结构
@@ -28,18 +28,18 @@
 4. 非线性激活函数(non-linear activation function)
 5. 全连接层
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_093758.bmp" width="60%" height="60%" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_093758.bmp" width="60%" height="60%" />
 </div>
 **回归问题**主要使用L2损失函数：
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_094743.bmp" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_094743.bmp" />
 </div>
 **分类问题**主要使用交叉损失函数：
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_094815.bmp" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_094815.bmp" />
 </div>
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_094854.bmp" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_094854.bmp" />
 </div>
 
 批处理随机梯度下降法：
@@ -48,7 +48,7 @@
 - 不同批处理之间按照无放回抽样遍历所有训练集样本，遍历一次训练样本称为“一轮”（epoch）。
 - 进行多轮迭代后直到网络参数收敛。
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_103407.bmp" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_103407.bmp" />
 </div>
 
 
@@ -57,7 +57,7 @@
 - 整个学习流程并不进行人为的子问题划分，而是完全交给深度学习模型直接学习从原始输入到期望输出的映射。整个过程具有协同增效的优势，有更大可能获得全局最优解
 - 将原始数据映射为特征（即特征学习）随后再映射为样本标记（即目标任务，如分类）。
 <div align="center">
-    <img src="F:/UESTC/科研/迁移学习/Paper Notes/src/CNN_book_tutorial_wxs/2018-06-26_110625.bmp" />
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-26_110625.bmp" />
 </div>
 [卷积层与池化层拓展][1]{:target="_blank"}.
 [1]: http://www.cnblogs.com/zf-blog/p/6075286.html "http://www.cnblogs.com/zf-blog/p/6075286.html"
