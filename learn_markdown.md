@@ -105,11 +105,11 @@ __double underscores__
 ### 图片的使用
 
 #### 方法一：行内式
-- Thie is my [profile](D:/profile.jpg "My profile").
+- Thie is my ![profile](D:/profile.jpg "My profile").
 
 ####方法二：参考式
-1. This is my [profile][]
-2. This is my computer [wallpaper][wp]
+1. This is my ![profile][]
+2. This is my computer ![wallpaper][wp]
 
 [profile]: D:/profile.jpg "参考式方法一"
 [wp]: D:/wallpaper.jpg "参考式方法二"
