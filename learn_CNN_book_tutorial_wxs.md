@@ -70,7 +70,8 @@
 **参考文献：**
 
 - [卷积层与池化层][1]{:target="_blank"}.
-[1]: http://www.cnblogs.com/zf-blog/p/6075286.html "http://www.cnblogs.com/zf-blog/p/6075286.html"
+
+ [1]: http://www.cnblogs.com/zf-blog/p/6075286.html "http://www.cnblogs.com/zf-blog/p/6075286.html"
 
 #### 2.2 卷积层（convolution）
 卷积运算属于分析数学中的一种运算方式，采用mini-batch训练策略时，网络第L层输入通常是一个四维张量，即：***
@@ -106,6 +107,8 @@
 - 整体边缘滤波器：可消除四周像素值差异小的图像区域而保留显著差异区域，以此检测物体边缘信息。
 - 横向边缘滤波器：同理，检测物体横向信息。
 - 纵向边缘滤波器：同理，检测物体纵向信息。
+
+**卷积结果**通常称为“**特征图**”或“**通道**”
 
 #### 2.3 汇合层（pooling）
 
@@ -184,13 +187,73 @@
 <div align="center">
     <img src="./src/CNN_book_tutorial_wxs/2018-06-27_225610.bmp" width="60%" />
 </div>
-神经网络中的“分布式表示”指“**语义概念**”（concept）到**神经元**（neuron）是一个多对多映射，直观来讲，即每个语义
+神经网络中的“分布式表示”指“**语义概念**”（concept）到**神经元**（neuron）是一个**多对多**映射，直观来讲，即每个语义
 概念由许多分布在不同神经元中被激活的模式（pattern）表示；而每个神经元
 又可以参与到许多不同语义概念的表示中去。
 
+随机选取相同的k张特征图（通道），并将特征图与对应原图叠加，即可得到有高亮部分的可视化结果。
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_095924.bmp" width="60%" />
+</div>
+卷积神经网络（convolution neural network，CNN）除**分布式表示特性**外，神经网络响应的区域多呈现“**稀疏**”（sparse）特性，即响应区域集中且占原图比例较小。
+
+- **深度特征的层次性**
+
+随着若干卷积、汇合等操作的堆叠，各层得到的深度特征逐渐从**泛化特征**（如边缘、纹理等）过度到**高层语义表示**（躯干、头部等模式）。
+
+利用**反卷积技术**可对神经网络特征进行**可视化**。
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_102543.bmp" width="60%" />
+</div>
+
+对单个网络模型而言“多层特征融合”（multi-layer ensemble）往往是一种很直接且有效的网络集成技术，对于提高网络精度通常有较好表现，
+
+#### 3.2 经典网络案例分析
+
+- **Alex-Net网络模型**
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_103809.bmp" width="60%" />
+</div>
+
+**主要训练技巧：**
+
+ReLU激活函数、局部响应规范化（LRN）操作、为防止过拟合而采取的数据增广
+（data augmentation）和随机失活（dropout）等。
+
+- **VGG-Nets网络模型**
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_110102.bmp" width="60%" />
+</div>
+
+1. VGG-Nets中普遍使用小卷积核以及“保持输入大小”等技巧。
+2. VGG-Nets具备良好的泛化性能。
+
+- **Network-In-Network网络模型**
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_114243.bmp" width="60%" />
+</div>
+
+1. 采用多层感知机，增加了网络卷积层的非线性能力。
+2. 摒弃了全连接层作为分类层的传统，转而改用全局汇合操作（global average pooling）。
+3. NIN最后一层共C张特征图（feature map）对应分类任务的C个类别。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-28_114340.bmp" width="50%" />
+</div>
 
 
-#### 3.1 全连接层
+**参考文献：**
+
+- [CNN网络架构演进][1]{:target="_blank"}.
+
+ [1]: https://www.cnblogs.com/skyfsm/p/8451834.html "https://www.cnblogs.com/skyfsm/p/8451834.html"
+
+
+- **深度特征的层次性**
+
+#### 3.2 经典网络案例分析
 
 $$ \times $$
 $$
