@@ -243,12 +243,75 @@ ReLU激活函数、局部响应规范化（LRN）操作、为防止过拟合而�
     <img src="./src/CNN_book_tutorial_wxs/2018-06-28_114340.bmp" width="50%" />
 </div>
 
+- **残差网络模型（Residual Network）**
+
+误差信号的多层反向传播非常容易引发梯度“弥散”（梯度过小会使回传的训练误差极其微弱）或者“爆炸”（梯度过大会导致模型训练出现“NaN”）现象。
+
+反常现象：在常规神经网络中，随着继续增加网络的深度，训练数据的训练误差没有降低反而升高。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_133118.bmp" width="70%" />
+</div>
+
+>**高速公路网络**
+
+忽略常规神经网络中层数和偏置，存在如下关系：
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_134230.bmp" width="20%" />
+</div>
+
+其中，F为非线性激活函数。对于高速公路网络而言，y的计算定义如下：
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_144812.bmp" width="40%" />
+</div>
+
+其中，T()和C()函数分别称为“**变换们**”和“**携带们**”，分别对应两项权重。
+
+在高速公路网络中，设置 **C = 1 - T** ，即有：
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_145349.bmp" width="40%" />
+</div>
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_145435.bmp" width="30%" />
+</div>
+
+>**深度残差网络**
+
+在高速公路网络中携带们和变换们都为**恒等映射**（恒等映射是指集合A到A自身的映射）时：
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_152632.bmp" width="20%" />
+</div>
+
+**残差学习**包含两个分支：
+
+1. 左侧的残差函数。
+2. 右侧对于输入的恒等映射。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_153514.bmp" width="25%" />
+</div>
+
+这两个分支经过一个简单整合（对应元素的相加）后，再经过一个非线性的变换**ReLU激活函数**，从而形成整个**残差学习模块**。由**多个残差模块**堆叠而成的网络结构称作“**残差网络**”。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-29_220511.bmp" width="60%" />
+</div>
+
+
+
 
 **参考文献：**
 
 - [CNN网络架构演进][1]{:target="_blank"}.
 
  [1]: https://www.cnblogs.com/skyfsm/p/8451834.html "https://www.cnblogs.com/skyfsm/p/8451834.html"
+
+
 
 
 - **深度特征的层次性**
