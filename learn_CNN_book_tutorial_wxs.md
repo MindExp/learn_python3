@@ -302,8 +302,9 @@ ReLU激活函数、局部响应规范化（LRN）操作、为防止过拟合而�
     <img src="./src/CNN_book_tutorial_wxs/2018-06-29_220511.bmp" width="60%" />
 </div>
 
-
-
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-30_202434.bmp" width="70%" />
+</div>
 
 **参考文献：**
 
@@ -311,12 +312,66 @@ ReLU激活函数、局部响应规范化（LRN）操作、为防止过拟合而�
 
  [1]: https://www.cnblogs.com/skyfsm/p/8451834.html "https://www.cnblogs.com/skyfsm/p/8451834.html"
 
+### 第四章 卷积神经网络的压缩
+
+#### 4.1 重要概念
+
+具体知识参考：CNN_book_tutorial_wxs
+
+### 第五章 数据扩充
+
+数据扩充主要用于增加训练样本的多样性，一方面可避免过拟合，另一方面又会带来模型性能的提升。
+
+#### 5.1 简单数据扩充方式
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-30_211403.bmp" width="60%" />
+</div>
+
+**尺度变换：**一般是将图像分辨率变为原图的 0.8，0,9， 1.1， 1.2等倍数。
+
+**旋转操作：**一般将原图旋转一定角度，如-30度，-15度，15度，30度等。
+
+**色彩抖动:**在RGB颜色空间对原有RGB色彩分布进行轻微的扰动。
+
+参考资料：
+
+- 图像数据扩充方法代码可参见：[https://github.com/aleju/imgaug](https://github.com/aleju/imgaug){:target="_blank"}
+
+#### 5.2 特殊数据扩充方式
+
+>**Fancy PCAS**
+
+具体知识参考：CNN_book_tutorial_wxs
+
+>**监督式数据扩充**
+
+区别于“以物体为中心”（object-centric）的图像分类任务，场景分类（scene-centric image classification）往往依靠图像整体所蕴含的高层语义（high-level semantic）进行图像分类。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-30_220009.bmp" width="60%" />
+</div>
+
+此时，如果把“树”和“天空”这样的图像块打上“海滩”的场景标记，不免会造成标记混乱，势必影响模型的分类精度。
+
+<div align="center">
+    <img src="./src/CNN_book_tutorial_wxs/2018-06-30_220644.bmp" width="50%" />
+</div>
+
+对此，可借助图像标记信息解决上述问题。具体而言，首先根据原数据训练一个分类的**初始模型**。而后，利用该模型，**对每张图生成对应的特征图（activation map）或热力图（heat map）**。这张特征图可**指示图像区域与场景标记间的相关概率**。之后，可根据此概率映射回原图**选择较强相关的图像区域作为扣取的图像块**。
+
+由于一开始利用了图像标记训练了一个初始分类模型，因此这样的过程被称作“**监督式数据扩充**”。
+
+### 第五章 数据预处理
+
+#### 6.1 
 
 
 
-- **深度特征的层次性**
 
-#### 3.2 经典网络案例分析
+
+
+
 
 $$ \times $$
 $$
@@ -326,5 +381,3 @@ $$
 \dot{z} & = -\beta z + xy
 \end{aligned}
 $$
-
-### 第2章 CNN基本部件
