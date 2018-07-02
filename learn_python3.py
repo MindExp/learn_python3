@@ -626,6 +626,7 @@ class Student(object):
 
 zhihai = Student('zhihai He', 668)
 zhihai.print_student_info()
+
 ###############################
 class Student(object):
     # python中内置许多特殊变量，以'__'开头，并以'__'结尾，usage: __main__
@@ -644,11 +645,12 @@ bruce.print_stu_info()
 # python没有任何机制阻止coder干坏事，一切靠自觉
 # 试图修改private变量，但是不会成功
 bruce.__stu_id = '668'
-print(bruce.__stu_id)   # 此时’__stu_id‘和对象中的'__stu_id'（实质被解释器解释为：_Student__stu_id）并不是同一个变量
+print(bruce.__stu_id, bruce._Student__stu_id)   # 此时’__stu_id‘和对象中的'__stu_id'（实质被当前解释器解释为：_Student__stu_id）并不是同一个变量
 bruce.print_stu_info()
 # 试图修改private变量，能成功，但是强烈建议不要这么做，因为在不同版本python解释器中__stu_id会被改成不同的变量名
 bruce._Student__stu_id = '668'
 bruce.print_stu_info()
+
 ###############################
 class Animal(object):
     def run(self):
@@ -660,7 +662,6 @@ class Animal(object):
     def len(self):
         return 10
 
-
 class Cat(Animal):  # 使用继承
     def run(self):  # 重写父类run()函数
         print('Cat is running.')
@@ -668,14 +669,9 @@ class Cat(Animal):  # 使用继承
     def voice(self):
         print('miaomiao.')
 
-
 class Car(object):
     def run(self):  # 重写父类run()函数
         print('Car is running.')
-
-
-animal = Animal()
-
 
 def run_twice(animal):
     animal.run()    # 多态
@@ -685,6 +681,7 @@ def run_twice(animal):
 cat = Cat()
 cat.run()
 cat.voice()
+animal = Animal()
 print(isinstance(cat, Animal), isinstance(animal, Cat))
 run_twice(animal)
 run_twice(cat)
@@ -694,9 +691,11 @@ car = Car()
 run_twice(car)
 # 能用type()判断的基本类型也可以用isinstance()判断
 print(type(123), type('123'), type(12.3), type(cat), type(animal), type(car))
-# 使用dir()函数获取一个对象所有的属性和方法
+# 使用dir(object)函数获取给定对象所有的属性和方法
 print(dir(cat))
 print(len(cat))  # 实质调用系统中__len__()函数
+print(cat.len(), cat.__len__())
+
 ###############################
 class Animal(object):
     def run(self):
@@ -705,7 +704,6 @@ class Animal(object):
     def __len__(self):
         return 100
 
-
 class Car(object):
     def run(self):
         print('Car is running.')
@@ -713,24 +711,21 @@ class Car(object):
 
 animal = Animal()
 car = Car()
-# 设置属性值的方式有三种
+print(hasattr(car, 'type'), hasattr(car, 'price'), hasattr(car, 'y'))
+# 设置对象属性值方式有三种
 # object.name = value, setattr(object, name, value), object.__setattr__(name, value)，
-# 获取属性值的方式有三种
-# object.name, getattr(object, name), object.__getattribute__(name)
-print(hasattr(car, 'type'))
 car.type = 'AL6'
-print(hasattr(car, 'type'), hasattr(car, 'y')) # 有
 setattr(car, 'price', '46.9')
 car.__setattr__('color', 'red')
-print(car.price, car.__getattribute__('price'))
-print(getattr(car, 'color'), car.__getattribute__('color'))
-# 获取对象方法有三种
-print(car.run, getattr(car, 'run'), car.__getattribute__('run'))
+# 获取属性值的方式有三种
+# object.name, getattr(object, name), object.__getattribute__(name)
+print(car.type, getattr(car, "price"), car.__getattribute__('color'))
 # 在不带括号运算中，and运算符优先级大于or运算符优先级
 # 在and运算符中（statement_1 and statement_2）如果，statement_1为真，则返回statement_2，否则返回statement_1
 # 在or运算符中（statement_1 or statement_2）如果，statement_1为真，则返回statement_1，否则返回statement_2
-print((tuple and list), isinstance([1,2,3],(tuple and list)))
-print((list and tuple), isinstance([1,2,3],(list and tuple)))
+print((tuple and list), (tuple or list), isinstance([1, 2, 3], (tuple and list)))
+print((list and tuple), (list or tuple), isinstance([1, 2, 3], (list and tuple)))
+
 ###############################
 # 类属性与实例属性
 class Student(object):
@@ -741,10 +736,8 @@ class Student(object):
     def __init__(self):
         Student.count += 1
 
-
 def get_name(self):
     return self.name
-
 
 def my_private_func():
     return 'My private function called.'
@@ -768,7 +761,7 @@ print(jack.my_private_func())
 try:
     print(bruce.my_private_func())
 except AttributeError:
-    raise AttributeError('Object function has not bound.')
+    raise AttributeError("Object function has not bound.")
 
 ###############################
 class Student(object):
@@ -781,13 +774,13 @@ bruce = Student()
 bruce.name = 'Bruce'
 bruce.age = 23
 try:
-    bruce.address = 'Sichuan'
+    bruce.address = 'Sichuan Province'
 except AttributeError:
     raise AttributeError('Binding attribute failed.')
 print(dir(bruce))
 
 ###############################
-class Student(object):
+    class Student(object):
     __slots__ = ('name', 'age', 'score')
 
     def __init__(self, name, age):
@@ -798,14 +791,15 @@ class Student(object):
         self.name = name
 
     # 通过python内置的property装饰器将方法变成属性调用
-    @property
-    def set_score(self):
-        pass
-        return self.set_score   # 在作为setter时，此处并无实际意义，但如果直接使用object.set_score，而不是作为赋值语句会导致overflow
+    @property   # 定义getter
+    def score_info(self):
+        print("Do something in getter!")
+        return self.score   # 在作为setter时，此处并无实际意义，但如果直接使用object.set_score，而不是作为赋值语句会导致overflow
 
     # 使用装饰器对setter进行数值检查
-    @set_score.setter   # 定义setter
-    def set_score(self, score):
+    @score_info.setter   # 定义setter（需要一个property函数对象）
+    def score_info(self, score):
+        print("Do something in setter!")
         if not isinstance(score, int):
             raise ValueError('Score must be an integer.')
         if score < 0 or score > 100:
@@ -818,17 +812,12 @@ class Student(object):
     def get_age(self):
         return self.age
 
-    # 通过python内置的property装饰器将方法变成属性调用
-    @property   # 定义getter
-    def get_score(self):
-        return self.score
-
 
 bruce = Student('Bruce', 24)
 print(bruce.get_name(), bruce.get_age())
 # set_score()方法当属性使用，通过装饰器进行数值检查
-bruce.set_score = 100
-print(bruce.get_score, bruce.score)
+bruce.score_info = 100
+print(bruce.score_info, bruce.score)
 
 ###############################
 class Student(object):
@@ -870,15 +859,15 @@ class Student(object):
 
 
 bruce = Student('Bruce', 24)
+print(bruce.name)
+# set_score当属性使用，通过装饰器进行数值检查
+bruce.score = 100
+print(bruce.score)
 try:
     # __age为对象限定属性(__slots__)，故无法在外部访问，即使是形式访问也不行
     bruce.__age = 100
 except AttributeError:
     raise AttributeError('Student object has no attribute __age.')  # 抛出AttributeError错误
-print(bruce.name)
-# set_score当属性使用，通过装饰器进行数值检查
-bruce.score = 100
-print(bruce.score)
 
 ###############################
 # Python允许使用多重继承，因此，MixIn就是一种常见的设计
@@ -893,18 +882,17 @@ class Student(object):
     def __repr__(self):
         return 'Hello,__repr__().'
 
-	__repr__ = __str__
-
 
 # 匿名对象
-print(Student('Bruce')) # 默认自动调用__str__函数
+print(Student('Bruce'))  # 默认自动调用__str__函数
+Student.__str__ = Student.__repr__
 jack = Student('Jack')
 print(jack)
 
 ###############################
 # 定义可迭代对象，主要实现一个对象可迭代化__iter__()并实现__next__()方法
 class Fib(object):
-    def __init__(selfhere):
+    def __init__(self):
         self.a, self.b = 1, 1
 
     def __iter__(self):
@@ -943,15 +931,15 @@ fib = Fib()
 for i in fib:
     print(i)
 print(fib[9])
-print(fib[1: 10])
+print(fib[5: 10])
 
 ###############################
 class Student(object):
     def __init__(self, name):
         self._name = name
 
-    @property
     # 将name方法属性化
+    @property
     def name(self):
         return self._name
 
@@ -959,6 +947,7 @@ class Student(object):
     def name(self, name):
         # 一定不能使用self.name = name.会出现无穷递归，因为此时name方法已属性化.
         self._name = name
+        return 
 
     # 当实例化对象试图获取未定义属性时，会自动调用__getattr__方法
     def __getattr__(self, attr):
@@ -1090,8 +1079,8 @@ class Dict(dict):
 
 
 # py_02.py
-import unittest;
-from py_01 import Dict;
+import unittest
+from py_01 import Dict
 
 
 class TestDict(unittest.TestCase):
@@ -1120,7 +1109,7 @@ class TestDict(unittest.TestCase):
     def test_keyError(self):
         d = Dict()
         # 断言抛出期待指定类型的错误
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(KeyError):
             value = d['empty']
 
     def test_arrtError(self):
@@ -1138,6 +1127,9 @@ if __name__ == '__main__':
     unittest.main()
 
 ###############################
+import doctest
+
+
 class Dict(dict):
     # doctest严格按照Python交互式命令行的输入和输出来判断测试结果是否正确。只有测试异常的时候，可以用...表示中间一大段烦人的输出。
     """
@@ -1161,6 +1153,7 @@ class Dict(dict):
         ...
     AttributeError: 'Dict' object has no attribute 'empty'
     """
+
     def __init__(self, **kw):
         super(Dict, self).__init__(**kw)
 
@@ -1175,11 +1168,13 @@ class Dict(dict):
 
 
 if __name__ == '__main__':
-    import doctest
     # 文档测试
     doctest.testmod()
 
 ###############################
+import re
+
+
 # 正则表达式也是用字符串表示的，强烈建议使用Python的r前缀，就不用考虑转义的问题了
 """
 >>> import re
