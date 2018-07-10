@@ -1,5 +1,6 @@
 
 ###############################
+# 在实际编程中应当尽量避免isinstance()方法的使用，因为类好类型检查和python中多态的目标背道而驰
 def my_abs(x : int):    # x : int 代表期望传入int类型参数
 	if not isinstance(x, (int, float)):
 		raise TypeError("bad operated type!")
@@ -481,7 +482,7 @@ print(temp_func.__name__, my_func.__name__, temp_func == my_func)
 
 ###############################
 # 在代码运行期间动态增加功能的方式，称之为“装饰器”（Decorator）
-# 借助Python的@语法自定义装饰器
+# 借助Python的@语法自定义装饰器，多个装饰器在应用时的顺序与指定顺序相反
 # 无参数装饰器
 import functools
 
@@ -1258,5 +1259,189 @@ if re.match(r'正则表达式', test):
     print('ok')
 else:
     print('failed')
+
+###############################
+class Bird(object):
+    def __init__(self):
+        self.hungry = True
+
+    def eat(self):
+        if self.hungry:
+            print("Aaaah")
+            self.hungry = False
+        else:
+            print("No, Thanks!")
+
+
+class SongBird(Bird):
+    # 重写__init__方法
+    def __init__(self):
+        """
+        使用父类__init__两种方法如下：
+        Bird.__init__(self)     # 旧版python方法
+        super(SongBird, self).__init__()    #新版python中使用super方法
+        """
+        super(SongBird, self).__init__()
+        self.sund = "Squawk"
+
+    def sing(self):
+        print(self.sund)
+
+
+sb = SongBird()
+sb.sing()
+sb.eat()
+sb.eat()
+
+###############################
+class Rectangle(object):
+    def __init__(self):
+        self.width = 0
+        self.height = 0
+
+    def setSize(self, size):
+        self.width, self.height = size
+
+    def getSize(self):
+        return self.width, self.height
+
+    # property函数的使用，类似提供size接口，无需关心getSize, setSize方法具体实现
+    size = property(getSize, setSize)
+
+
+r = Rectangle()
+r.width = 10
+r.height = 5
+print(r.getSize(), r.size)
+r.size = (100, 50)
+print(r.getSize(), r.size)
+
+###############################
+class MyClass(object):
+    def __init__(self):
+        return "object created!"
+
+    # 定义静态方法
+    @staticmethod
+    def smethod():
+        print("smethod called.")
+
+    # 定义类方法
+    @classmethod
+    def cmethod(cls):
+        print("cmethod called.")
+
+
+MyClass.smethod()
+MyClass.cmethod()
+
+###############################
+class MyClass(object):
+    def __init__(self):
+        print("__init__ been called.")
+
+    # 获取item特性时被调用
+    def __getattribute__(self, item):
+        print("__getattribute__ been called.")
+        try:
+            return object.__getattribute__(self, item)
+        except:
+            print("AttributeError")
+
+    # 试图给item特性赋值时被调用
+    def __setattr__(self, key, value):
+        print("__setattr__ been called.")
+        object.__setattr__(self, key, value)
+
+
+myObject = MyClass()
+myObject.info
+myObject.info = 'info'
+print(myObject.info)
+
+###############################
+# 使用递归生成器
+def flatten(nested):
+    try:
+        for sublist in nested:
+            for element in flatten(sublist):
+                yield element
+    except TypeError:
+        yield nested
+
+
+print(list(flatten([[[[1, 2], 3], 4], 5])))
+
+###############################
+import random
+
+
+# 冲突检查，在定义state时，采用state来标志每个皇后的位置，其中索引用来表示横坐标，基对应的值表示纵坐标，例如： state[0]=3，表示该皇后位于第1行的第4列上
+def conflict(state, nextX):
+    nextY = len(state)
+    for i in range(nextY):
+        # 如果下一个皇后的位置与当前的皇后位置相邻（包括上下，左右）或在同一对角线上，则说明有冲突，需要重新摆放
+        if abs(state[i] - nextX) in (0, nextY - i):
+            return True
+    return False
+
+
+# 采用生成器的方式来产生每一个皇后的位置，并用递归来实现下一个皇后的位置。
+def queens(num, state=()):
+    for pos in range(num):
+        if not conflict(state, pos):
+            # 产生当前皇后的位置信息
+            if len(state) == num - 1:
+                yield (pos,)
+            # 否则，把当前皇后的位置信息，添加到状态列表里，并传递给下一皇后。
+            else:
+                for result in queens(num, state + (pos,)):
+                    yield (pos,) + result
+
+
+# 为了直观表现棋盘，用X表示每个皇后的位置
+def prettyPrint(solution):
+    def line(pos, length=len(solution)):
+        return '. ' * (pos) + 'X ' + '. ' * (length - pos - 1)
+
+    for pos in solution:
+        print(line(pos))
+
+
+if __name__ == "__main__":
+    prettyPrint(random.choice(list(queens(8))))
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
+
+###############################
+
 
 ###############################
