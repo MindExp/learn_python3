@@ -1,19 +1,60 @@
 \documentclass[12pt, letterpaper]{article}
 \usepackage[]{inputenc}
 \usepackage{graphicx}
-\usepackage{verbatim}	% we use comment command to excute mutiple comments in latex.
-\graphicspath{C:/Users/Administrator/Desktop}	% This line seems not working.
+\usepackage{verbatim}	% we use comment command to excute mutiple comments in latex, OR we can use \usepackage{comment}.
+\usepackage{amssymb}	% this package contains some special mathematical symbols.
+\usepackage{wrapfig}
+\usepackage{tabu}
+\graphicspath{{F:/Projects/LaTex}}	% \graphicspath{ {./path1/}{./path2/} }
 
 \title{First document}
-\author{Hubert Farnsworth}
+\author{Zhihai He \thanks{thanks information in here.} \and MindExp \thanks{funded by the ShareLaTeX team.}}
 \date{July 2018}
 
 \begin{document}
+
+\begin{titlepage}	% title page in latex.
 \maketitle
+\end{titlepage}
 
 \tableofcontents
-First document. This is a simple example, with no 
+
+First document. This is a simple example, with no 	% there are two ways to start a new line in latex, using a blank line or \par.
 extra parameters or packages included.
+
+\textbf{Centering the Text}
+
+\begin{center}	% equivalent to \centering, but the latter command will be working from the point where it's inserted down to the end of the document, unless another switch command is inserted, the same as flushelft with \raggedleft, and flushright with \raggedright.	
+Example 1: The following paragraph (given in quotes) is an 
+example of Center Alignment using the center environment. 
+
+``LaTeX is a document preparation system and document markup 
+language. LaTeX uses the TeX typesetting program for formatting 
+its output, and is itself written in the TeX macro language. \par	% the next will start a new paragraph
+LaTeX is not the name of a particular editing program, but 
+refers to the encoding or tagging conventions that are used 
+in LaTeX documents".
+\end{center}
+
+\textbf{Flushing Left the Text}
+
+\begin{flushleft}
+``LaTeX is a document preparation system and document markup 
+language. LaTeX uses the TeX typesetting program for formatting 
+its output, and is itself written in the TeX macro language. 
+LaTeX is not the name of a particular editing program, but refers 
+to the encoding or tagging conventions that are used in LaTeX documents".
+\end{flushleft}
+
+\textbf{Flushing Right the Text}
+
+\begin{flushright}
+``LaTeX is a document preparation system and document markup 
+language. LaTeX uses the TeX typesetting program for formatting 
+its output, and is itself written in the TeX macro language. 
+LaTeX is not the name of a particular editing program, but refers 
+to the encoding or tagging conventions that are used in LaTeX documents".
+\end{flushright}
 
 % This \textbf{•} here is a comment. It will not be printed in the document.
 \textbf{Bold, italics and underlining}
@@ -27,31 +68,190 @@ Some of the greatest \emph{discoveries} in science were made by accident.
 
 \textbf{Adding images}
 
-\centering
-\includegraphics[width=3.5in]{./src/CNN_book_tutorial_wxs/2018-06-26_222331}	% Chinese can not be contained in the file path.
-
-\begin{figure}[ht]
-	\centering
-	\includegraphics[scale=0.6]{./src/CNN_book_tutorial_wxs/2018-06-27_164120}
-	\caption{a nice plot}	%  you may expect this command sets the caption for the Ògure.
-	\label{fig:plot}	%  If you need to refer the image within your document, set a label with this command.
-\end{figure}
+\begin{center}
+	\begin{comment}
+		\includegraphics[scale=1.5]{lion-logo}	% the extra parameter scale=1.5 will do exactly that, scale the image 1.5 of its real size.
+		\includegraphics[width=3cm, height=4cm]{lion-logo}	% scale the image to a some specific width and height.
+		\includegraphics[width=\textwidth]{universe}	% make a picture the same width as the text.
+		\includegraphics[scale=1.2, angle=45]{lion-logo}	% The parameter angle=45 rotates the picture 45 degrees counter-clockwise. 
+	\end{comment}
+	\includegraphics[width=3.5in]{./2018-06-26_222331}	% Chinese can not be contained in the file path.
+	\begin{figure}[h]	% The figure environment will position the figure in a such way that it fits the flow of the document, the brackets set the position of the figure[h | t | b | p | ! | H].
+		\centering
+		\includegraphics[scale=0.6]{./2018-06-27_164120}
+		\caption{a nice plot}	%  you may expect this command sets the caption for the Ògure.
+		\label{fig:plot}	%  If you need to refer the image within your document, set a label with this command.
+	\end{figure}
+\end{center}
 
 As you can see in the figure \ref{fig:plot}, It is an example of sigmoid function. Also, in the page \pageref{fig:plot} is the same example.
 
+\begin{wrapfigure}{r}{0.25\textwidth}	% this figure will be at the right, and wrap the text around a figure. it will use wrapfig package.
+	\centering
+	\includegraphics[width=0.25\textwidth]{./2018-06-26_222331}
+	\caption{wrap\_one}
+	% \label{fig:wrap_one}
+\end{wrapfigure}
+
+There are several ways to plot a function of two variables, 
+depending on the information you are interested in. For 
+instance, if you want to see the mesh of a function so it 
+easier to see the derivative you can use a plot like the 
+one on the left.SSS
+
+\begin{wrapfigure}{l}{0.25\textwidth}	% This is the width of figure box. Notice that the length is relative to the text width.
+	\centering	%  the image will be centred by using its container as reference, instead of the whole text.
+	\includegraphics[width=0.25\textwidth]{./2018-06-26_222331}
+	\caption{wrap\_two}
+\end{wrapfigure}
+
+On the other side, if you are only interested on 
+certain values you can use the contour plot, you 
+can use the contour plot, you can use the contour 
+plot, you can use the contour plot, you can use 
+the contour plot, you can use the contour plot, 
+you can use the contour plot, like the one on the left.
+ 
+On the other side, if you are only interested on 
+certain values you can use the contour plot, you 
+can use the contour plot, you can use the contour 
+plot, you can use the contour plot, you can use the 
+contour plot, you can use the contour plot, 
+you can use the contour plot, 
+like the one on the left.
+
+On the other side, if you are only interested on 
+certain values you can use the contour plot, you 
+can use the contour plot, you can use the contour 
+plot, you can use the contour plot, you can use the 
+contour plot, you can use the contour plot, 
+you can use the contour plot, 
+like the one on the left.
+
+\begin{comment}
+	% Generating high-res and low-res images
+	\DeclareGraphicsExtensions{.png,.pdf}
+	\DeclareGraphicsExtensions{.pdf,.png}
+\begin{comment}
+
+\listoffigures
+
 \textbf{Unordered lists}
 
+\begin{comment}
+The default label scheme for itemized lists is:
+Level 1 is \textbullet (•),
+Level 2 is \textendash (–) ,
+Level 3 is \textasteriskcentered (*)
+Level 4 is \textperiodcentered (·).
+\end{comment}
+
 \begin{itemize}
-	\item The individual entries are indicated with a black dot, a so-called bullet.
-	\item The text in the entries may be of any length.
+	\item First Level
+	\begin{itemize}
+		\item Second Level
+		\begin{itemize}
+			\item Third Level
+			\begin{itemize}
+				\item Fourth Level
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
 \end{itemize}
+
+\begin{itemize}
+	\item Default item label for entry one
+	\item Default item label for entry two
+	\item[$\square$] Custom item label for entry three
+	\item[$\blacksquare$] Custom item label for entry three
+\end{itemize}
+
+\renewcommand{\labelitemi}{$\blacksquare$}	% used info in amssymb package, and the renewcommand will effect the rest of document format.
+\renewcommand{\labelitemii}{$\square$}
+\begin{itemize}
+	\item First Level
+	\begin{itemize}
+		\item Second Level
+		\begin{itemize}
+			\item Third Level
+			\begin{itemize}
+				\item Fourth Level
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
+
+\textbf{Nested Lists}
+
+\begin{enumerate}
+	\item The labels consists of sequential numbers.
+	\begin{itemize}
+		\item The individual entries are indicated with a black dot, a so-called bullet.
+		\item The text in the entries may be of any length.
+	\end{itemize}
+	\item The numbers starts at 1 with every call to the enumerate environment.
+\end{enumerate}
 
 \textbf{Ordered lists}
 
 \begin{enumerate}
-	\item This is the first entry in our list
-	\item The list numbers increase with each entry we add
+   \item First level item
+   \item First level item
+   \begin{enumerate}
+     \item Second level item
+     \item Second level item
+     \begin{enumerate}
+       \item Third level item
+       \item Third level item
+       \begin{enumerate}
+         \item Fourth level item
+         \item Fourth level item
+       \end{enumerate}
+     \end{enumerate}
+   \end{enumerate}
+ \end{enumerate}
+
+\begin{comment}
+The default numbering scheme is:
+Arabic number (1, 2, 3, ...) for Level 1
+Lowercase letter (a, b, c, ...) for Level 2
+Lowercase Roman numeral (i, ii, iii, ...) for Level 3
+Uppercase letter (A, B, C, ...) for Level 4.
+
+Code Description
+\alph Lowercase letter (a, b, c, ...)
+\Alph Uppercase letter (A, B, C, ...)
+\arabic Arabic number (1, 2, 3, ...)
+\roman Lowercase Roman numeral (i, ii, iii, ...)
+\Roman Uppercase Roman numeral (I, II, III, ...)
+\end{comment}
+
+\renewcommand{\labelenumii}{\Roman{enumii}}	% The command \renewcommand{\labelenumii}{\Roman{enumii}} changes the second level to upper case Roman numeral.
+\begin{enumerate}
+	\item First level item
+	\item First level item
+	\begin{enumerate}
+		\setcounter{enumii}{4}	% To change the start number or letter you must use the \setcounter command.
+		\item Second level item
+		\item Second level item
+		\begin{enumerate}
+			\item Third level item
+			\item Third level item
+			\begin{enumerate}
+				\item Fourth level item
+				\item Fourth level item
+			\end{enumerate}
+		\end{enumerate}
+	\end{enumerate}
 \end{enumerate}
+
+\begin{comment}
+It is possible to change the labels of any level, replace labelenumii for one of the listed below.
+\theenumi for Level 1
+\theenumii for Level 2
+\theenumiii for Level 3
+\theenumiv for Level 4
+\end{comment}
 
 \textbf{Adding math to LaTeX}
 
@@ -104,12 +304,19 @@ This line will start a second Paragraph.
 % \chapter{Chapter}		% chapter syntax not working in article environment,  \part and \chapter are only available in report and book document classes.
 
 \section{First Section}
-This is the first section.
+This is the first section.	% by default, LATEX does not indent the first paragraph of a section.
 
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Etiam lobortisfacilisis sem. Nullam nec mi et neque pharetra sollicitudin. Praesent imperdietmi nec ante. Donec ullamcorper, felis non sodales...
 
 \section{Second Section}
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Etiam lobortis facilisissem. Nullam nec mi et neque pharetra sollicitudin. Praesent imperdiet mi necante... 
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Etiam lobortis facilisissem. Nullam nec mi et neque pharetra sollicitudin. Praesent imperdiet mi necante... \par
+\setlength{\parindent}{10ex}	% setting the indent of a paragraph.
+This is the text in second paragraph. This is the text in second 
+paragraph. This is the text in second paragraph.
+
+\noindent	% the next paragraph is not indented.
+This is the text in third paragraph. This is the text in third 
+paragraph. This is the text in third paragraph.
 
 \subsection{First Subsection}
 Praesent imperdietmi nec ante. Donec ullamcorper, felis non sodales...
@@ -133,12 +340,12 @@ The basic levels of depth are listed below:
 
 \begin{table}
 \begin{center}
-\begin{tabular}{| c | c | c |}		% specify the parameter of tabular environment.
+\begin{tabular}{| c | c | c |}		% specify the parameter of tabular environment. declares that three columns, separated by a vertical line, also can use {| l | l | l |} or {| r | r | r |}
 	% we can add borders using the horizontal line command \hline and the vertical line parameter |.
 	\hline	% horizontal line
-	cell1 & cell2 & cell3 \\
+	cell1 & cell2 & cell3 \\	% do not forget to add \\ characters.
 	\hline
-	cell4 & cell5 & cell6 \\
+	cell4 & cell5 & cell6 \\	% Each & is a cell separator and the double-backslash \\ sets the end of this row.
 	\hline\hline
 	cell7 & cell8 & cell9 \\
 	\hline
@@ -170,6 +377,26 @@ Table \ref{table:data} is an example of referenced \LaTeX{} elements, and it is 
 \end{center}
 \end{table}
 
-\thanks{funded by the ShareLaTeX team}
-\today
+\begin{center}
+	\begin{tabular}{ | m{5em} | m{1cm}| m{1cm} | } 
+		\hline
+		cell1 dummy text dummy text dummy text& cell2 & cell3 \\ 
+		\hline
+		cell1 dummy text dummy text dummy text & cell5 & cell6 \\ 
+		\hline
+		cell7 & cell8 & cell9 \\ 
+		\hline
+	\end{tabular}
+\end{center}
+
+\begin{tabu} to 0.8\textwidth { | X[l] | X[c] | X[r] | }
+	\hline	
+	item 11 & item 12 & item 13 \\
+	\hline
+	item 21  & item 22  & item 23  \\
+\hline
+\end{tabu}
+
+\date{\today}
+
 \end{document}
