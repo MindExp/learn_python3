@@ -1375,7 +1375,6 @@ print(list(flatten([[[[1, 2], 3], 4], 5])))
 ###############################
 import random
 
-
 # 冲突检查，在定义state时，采用state来标志每个皇后的位置，其中索引用来表示横坐标，基对应的值表示纵坐标，例如： state[0]=3，表示该皇后位于第1行的第4列上
 def conflict(state, nextX):
     nextY = len(state)
@@ -1437,6 +1436,7 @@ print(heap)
 ###############################
 from collections import deque
 
+
 # 创建双端队列
 queue = deque(range(10))
 queue.append(66)
@@ -1471,6 +1471,8 @@ print(sample(list(range(20, 40, 5)), 3))    # 在列表中随机选择3个独立
 
 ###############################
 import sys, shelve
+
+
 """
 使用shelve作为临时存储方案（实际在文件中以字典形式存储）
 """
@@ -1608,5 +1610,71 @@ for line in fileinput.input(file):  # 测试无效，无法迭代
 for line in file:   # 文件迭代对象实际为内容列表
     process(line)
 file.close()
+
+###############################
+    Core Python Programming
+###############################
+import re
+
+
+m = re.match('foo', 'sea food')  # 模式匹配字符串，匹配成功就返回匹配对象，否则返回None
+if m is not None:  # 如果匹配成功，就使用group()输出匹配内容
+    print(m.group())
+else:
+    print('mach failed.')
+print(re.search('foo', 'sea food').group())
+pattern = '\w+@(\w+\.)?\w+\.com' # 使用圆括号对正则表达式进行分组
+print(re.match(pattern, 'nobody@xxx.com').group())
+print(re.match(pattern, 'nobody@www.xxx.com').group())
+pattern = '(\w+)-(\d+)'
+m = re.match(pattern, 'abc-123')
+if m is not None:
+    print(m.groups(), m.group(), m.group(1), m.group(2))
+m = re.match('(a(b))', 'ab')
+if m is not None:
+    print(m.groups(), m.group(), m.group(1), m.group(2))
+print(re.search('^The', 'The end.').group())
+m = re.search('^The', 'end. The')
+if m is not None:
+    print(m.group())
+else:
+    print('search failed.')
+print(re.search(r'\bthe', 'bite the dog.').group())  # 使用原始字符串
+m = re.search(r'\bthe', 'bitethe dog.')  # '\b'表示匹配任何单词边界，'\B'反之
+if m is not None:
+    print(m.group())
+else:
+    print('search failed.')
+print(re.search(r'\Bthe', 'bitethe dog.').group())
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
 
 ###############################
