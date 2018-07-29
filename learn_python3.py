@@ -1412,36 +1412,201 @@ if __name__ == "__main__":
     prettyPrint(random.choice(list(queens(8))))
 
 ###############################
+from heapq import *
+from random import shuffle
 
 
-###############################
-
-
-###############################
-
-
-###############################
-
-
-###############################
-
-
-###############################
-
-
-###############################
-
-
-###############################
-
-
-###############################
-
+"""
+1. 在python中并没有独立的堆类型，只有一个包含一些堆操作函数的模块，这个模块叫做heapq
+2. 在python堆底层算法实现中，i位置处的元素总比2*i以及2*i+1位置处的元素小，该特性称为堆属性
+3. heapify函数使用任意列表作为参数，并通过尽量少的以为操作，将其转换为合法的堆（满足堆属性）
+"""
+data = list(range(10))
+shuffle(data)
+heap = []   # heap = heapify(data)
+for n in data:
+    heappush(heap, n)
+print(heap)
+heappush(heap, 0.5)
+print(heap)
+heappop(heap)
+print(heap)     # 弹出最小元素，一般都是索引位置为0的元素
+heapreplace(heap, 66)
+print(heap)
 
 ###############################
+from collections import deque
 
+# 创建双端队列
+queue = deque(range(10))
+queue.append(66)
+queue.appendleft(88)
+print(queue)
+print(queue.pop())
+print(queue.popleft())
+queue.rotate(3)
+print(queue)
+queue.rotate(-1)
+print(queue)
 
 ###############################
+import time
 
+
+startTime = time.time()     # 获取当前时间（新纪元开始后的秒数，以UTC为准）
+print(time.asctime())   # 将当前时间转换为字符串
+time.sleep(3)   # 休眠3秒
+endTime = time.time()
+print(endTime - startTime)
+
+###############################
+from random import *
+
+
+print(random())     # 生成（0，1）之间的随机实数
+print(uniform(10, 20))      # 生成（10,20）之间的随机实数
+print(randrange(20, 40, 5))     # 随机返回生成列表中的数
+print(choice(list(range(20, 40, 5))))   # 随机返回生成列表中的数
+print(sample(list(range(20, 40, 5)), 3))    # 在列表中随机选择3个独立元素
+
+###############################
+import sys, shelve
+"""
+使用shelve作为临时存储方案（实际在文件中以字典形式存储）
+"""
+def store_person(db):
+    pid = input('Enter unique ID number:')
+    person = {'name': input('Enter name:'), 'age': input('Enter age:'), 'phone': input('Enter phone number:')}
+    db[pid] = person
+
+
+def lookup_person(db):
+    pid = input('Enter ID number:')
+    field = input('What would you like to know? (name, age, phone, all info)')
+    field = field.strip().lower()
+    if field == 'all info':
+        print(field.capitalize() + ':' + str(db.get(pid, 'No looking up info in database.dat file')))
+    else:
+        print(field.capitalize() + ':' +
+              db.get(pid, 'No looking up info in database.dat file')(field, 'No looking up info in database.dat file'))
+        db.pop()
+
+def print_help():
+    print('Help information in here.')
+
+
+def enter_command():
+    cmd = input('Enter command(? for help):')
+    cmd = cmd.strip().lower()
+    return cmd
+
+
+def main():
+    database = shelve.open('F:\\Projects\\Python\\Py_01\\database.dat')
+    try:
+        while True:
+            cmd = enter_command()
+            if cmd == 'store':
+                store_person(database)
+            elif cmd == 'lookup':
+                lookup_person(database)
+            elif cmd == 'help':
+                print_help()
+            else:
+                return
+    finally:
+        database.close()
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+"""
+import re
+Simple Regular Expression Syntax
+通配符（.），可以匹配除了换行符外的任意字符。如：'.ython'
+对特殊字符需要进行转义。如：'python\\.org'    # 用到了两层转义
+字符集：'[a-zA-Z0-9]'能匹配任意大小写字母和数字。
+反转字符集：'[^abc]'能匹配除了a、b和c之外的字符。
+选择符：'pythob|perl'
+子模式：'p(ython|erl)'
+可选项：在子模式后面加上问号表示可选项（出现一次或者不出现），如：r'(http://)?(www\.)?python\.org'
+(pattern)*:模式重复出现0次或者多次
+(pattern)+：模式重复出现1次或者多次
+(pattern){m,n}：模式重复出现m到n次
+字符串的开始与结尾：使用脱字符(^)标记开始匹配，如：'^ht+p'
+
+re模块中的一些重要函数
+compile(pattern[, flags])   # 创建模式对象
+search(pattern, string[, flags])    # 在字符串中寻找模式
+match(pattern, string[, flags])     # 在字符串开始处匹配模式
+split(pattern, string[, maxsplit=0])    # 根据模式匹配项来分割字符串
+findall(pattern, string)    #列出字符串中所有匹配项
+sub(pat, repl, string[, count=0])   # 将字符串中所有pat项用repl替换
+escape(string)  # 将字符串中所有特殊正则表达式字符转义    
+"""
+
+###############################
+someFile = open(r'F:\Projects\Python\Py_01\myfile.txt', 'r+', True)
+# python中针对文件通用操作步骤
+try:
+    someFile.doSomething()
+except Exception as e:
+    print(e)
+finally:
+    someFile.close()
+
+# python中针对文件操作的with语句，在with语句结束时会自动close文件
+with open('', 'r', True) as someFile:
+    someFile.doSomething()
+
+###############################
+# 对文件内容进行迭代
+def process(string):
+    print('Processing' + string)
+
+
+# method one
+file = open('File path')
+char = file.read(1)
+while char:
+    process(char)
+    char = file.read(1)
+# method two
+while True:
+    char = file.read(1)
+    if not char:
+        break
+    process(char)
+# 按行读取内容
+while True:
+    line = file.readline()
+    if not line:
+        break
+    process(line)
+# 迭代字符：file.read()会读取文件所有内容，返回字符串。
+for char in file.read():
+    process(char)
+# 迭代行：file.readlines()也会读取所有内容，但是返回列表
+for line in file.readlines():
+    process(line)
+file.close()
+
+###############################
+import fileinput
+
+
+def process(string):
+    print('Processing: ' + string)
+
+
+file = open('F:\Projects\Python\Py_01\myfile.txt', 'r')    # 默认read only方式打开
+for line in fileinput.input(file):  # 测试无效，无法迭代
+    process(line)
+# 文件迭代器
+for line in file:   # 文件迭代对象实际为内容列表
+    process(line)
+file.close()
 
 ###############################
