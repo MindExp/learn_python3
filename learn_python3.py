@@ -1616,14 +1616,14 @@ file.close()
 ###############################
 import re
 
-
+# 正则表达式对于探索原始字符串有着强大的动力，原因就在于 ASCII 字符和正则表达式的特殊字符之间存在冲突
 m = re.match('foo', 'sea food')  # 模式匹配字符串，匹配成功就返回匹配对象，否则返回None
 if m is not None:  # 如果匹配成功，就使用group()输出匹配内容
     print(m.group())
 else:
     print('mach failed.')
 print(re.search('foo', 'sea food').group())
-pattern = '\w+@(\w+\.)?\w+\.com' # 使用圆括号对正则表达式进行分组
+pattern = '\w+@(\w+\.)?\w+\.com'  # 使用圆括号对正则表达式进行分组（子组）
 print(re.match(pattern, 'nobody@xxx.com').group())
 print(re.match(pattern, 'nobody@www.xxx.com').group())
 pattern = '(\w+)-(\d+)'
@@ -1646,6 +1646,290 @@ if m is not None:
 else:
     print('search failed.')
 print(re.search(r'\Bthe', 'bitethe dog.').group())
+print(re.findall('car', 'carry the barcardi to the car.'))  # findall()以列表形式返回匹配结果
+string = 'This and that'
+m1 = re.findall(r'(th\w+) and (th\w+)', string, re.I)  # findall()匹配成功时以列表形式返回，其中re.I 表示匹配时忽略大小写
+it = re.finditer(r'(th\w+) and (th\w+)', string, re.I)
+print(m1)
+print(next(it).groups())
+print(re.findall(r'(th\w+)', string, re.I))
+it = re.finditer(r'(th\w+)', string, re.I)
+print(next(it).groups())
+print(next(it).groups())
+print(re.sub(r'X', 'Mr.Smith', 'attn: X\n\tDear X, \n'))  # 搜索和替换字符串
+print(re.subn(r'X', 'Mr.Smith', 'attn: X\n\tDear X, \n'))  # 搜索和替换字符串，并返回替换总数，以元组形式返回
+print(re.split(':', 'str1:str2:str3'))  # 以列表形式返回
+# 使用扩展符（使用(?iLmsux)系列选项）
+print(re.findall(r'(?i)yes', 'yes? Yes, YES!!'))  # 扩展符(?i)表示忽略大小写
+print(re.findall(r'th.+', """
+    The first line
+    the second line
+    the third line"""))  # '.'无法匹配换行符
+print(re.findall(r'(?s)th.+', """
+    The first line
+    the second line
+    the third line"""))  # 扩展符(?s)表示'.'可以匹配换行符
+print(re.findall(r'http://(?:\w+\.)*(\w+\.com)', 'http://google.com http://www.google.com http: '
+                                                 '//code.google.com'))  # 扩展符(?...)对部分正则表达式进行分组，但是并不会保存该分组用于后续的检索或者应用
+print(re.search(r'\((?P<areacode>\d{3})\) (?P<prefix>\d{3})-(?:\d{4})',
+                '(800) 555-1212').groupdict())
+# 正则表达式本质上实现贪婪匹配
+print(re.match(r'.+(\d+-\d+-\d+)', 'Thu Feb 15 17:46:04 2007::uzifzf@dpyivihw.gov::1171590364-6-8').group(1))
+# 使用“非贪婪”操作符“?”
+print(re.match(r'.+?(\d+-\d+-\d+)', 'Thu Feb 15 17:46:04 2007::uzifzf@dpyivihw.gov::1171590364-6-8').group(1))
+
+###############################
+from socket import *
+
+
+tcpSockt = socket(AF_INET, SOCK_STREAM)    # 创建TCP套接字
+udpSockt = socket(AF_INET, SOCK_DGRAM)     # 穿件UDP套接字
+'''
+TCP服务器通用设计模式：
+    ss = socket()  # 创建服务器套接字
+    ss.bind()  # 套接字与地址绑定
+    ss.listen()  # 监听连接
+    iif_loop:  # 服务器无限循环
+        cs = ss.accept()  # 接受客户端连接
+        comm_loop:  # 通信循环
+            cs.recv()/cs.send()  # 对话（接收/发送）
+        cs.close()  # 关闭客户端套接字
+    ss.close()  # 关闭服务器套接字#（可选）
+
+TCP客服端通用设计模式：
+    cs = socket()
+    cs.connect()
+    comm_loop:
+        cs.send()/cs.recv()
+    cs.close()
+
+UDP服务器通用设计模式：
+    ss = socket()
+    ss.bind()
+    iif_loop:
+        ss.recvfrom()/ss.sendto()
+    ss.close()
+UDP客服端通用设计模式：
+    cs = socket()
+    comm_loop:
+        cs.sendto()/cs.revefrom()
+    cs.close()
+'''
+
+###############################
+# 创建TCP服务端与TCP客户端并实现简单的相互通信
+# TCP服务端
+from socket import *
+from time import ctime
+
+# 创建一个 TCP 服务器，它接受来自客户端的消息，然后将消息加上时间戳前缀并发送回客户端
+HOST = 'localhost'
+PORT = 21567
+BUFSIZE = 1024
+ADDRESS = (HOST, PORT)
+
+tcpServerSocket = socket(AF_INET, SOCK_STREAM)
+tcpServerSocket.bind(ADDRESS)
+tcpServerSocket.listen(5)  # 在连接被转接或拒绝之前，传入连接请求的最大数
+try:
+    while True:
+        print('waiting for connection...')
+        tcpClientSocket, address = tcpServerSocket.accept()     # 面向连接的，需建立虚电路连接
+        print('... connected from:', address)
+
+        while True:
+            data = tcpClientSocket.recv(BUFSIZE)
+            if not data:
+                break
+            print('Server received data: %s ' % (data.decode('utf-8')))
+            tcpClientSocket.send(bytes('[%s] %s' % (ctime(), data), 'utf-8'))  # 将字符串作为一个 ASCII 字节“字符串”发送
+
+        tcpClientSocket.close()
+except (EOFError, KeyboardInterrupt) as e:
+    print(e)
+finally:
+    tcpServerSocket.close()
+
+###############################
+# TCP客户端
+from socket import *
+
+HOST = 'localhost'
+PORT = 21567
+BUFFSIZE = 1024
+ADDRESS = (HOST, PORT)
+
+tcpClientSocket = socket(AF_INET, SOCK_STREAM)
+tcpClientSocket.connect(ADDRESS)
+
+while True:
+    data = input('>')
+    if not data:
+        break
+    tcpClientSocket.send(bytes(data, 'utf-8'))
+    data = tcpClientSocket.recv(BUFFSIZE)
+    if not data:
+        break
+    print(data.decode('utf-8'))
+
+tcpClientSocket.close()
+
+###############################
+# UDP服务端
+from socket import *
+from time import ctime
+
+HOST = 'localhost'
+PORT = 21567
+BUFFSIZE = 1024
+ADDRESS = (HOST, PORT)
+
+udpServerSocket = socket(AF_INET, SOCK_DGRAM)
+udpServerSocket.bind(ADDRESS)
+
+try:
+    while True:
+        print('waiting for message...')
+        data, address = udpServerSocket.recvfrom(BUFFSIZE)
+        print('...received from and returned to (%s, %s)' % address)
+        print('Server received data: %s ' % (data.decode('utf-8')))
+        udpServerSocket.sendto(bytes('[%s] %s' % (ctime(), data), 'utf-8'), address)
+except (EOFError, KeyboardInterrupt) as e:
+    print(e)
+finally:
+    udpServerSocket.close()
+
+###############################
+# UDP客户端
+from socket import *
+
+HOST = 'localhost'
+PORT = 21567
+ADDRESS = (HOST, PORT)
+BUFFSIZE = 1024
+
+udpClientSocket = socket(AF_INET, SOCK_DGRAM)
+
+while True:
+    data = input('>')
+    if not data:
+        break
+    udpClientSocket.sendto(bytes(data, 'utf-8'), ADDRESS)
+    data, ADDRESS = udpClientSocket.recvfrom(BUFFSIZE)
+    if not data:
+        break
+    print(data.decode('utf-8'))
+
+###############################
+# socketserver TCP服务器
+from socketserver import (TCPServer as TCP,
+                          StreamRequestHandler as SRH)
+from time import ctime
+
+# 创建socketserver TCP服务器，其为标准库中的一个高级模块，主要使用大量的类隐藏了实现细节
+HOST = 'localhost'
+PORT = 21567
+ADDRESS = (HOST, PORT)
+
+class MyRequestHandler(SRH):
+    def handle(self):   # 重写StreamRequestHandler中handle()
+        print('...connected from: (%s, %s)' % self.client_address)
+        # StreamRequestHandler类将输入和输出套接字看作类似文件的对象
+        data = self.rfile.readline().decode()
+        print('received data: %s ' % data)
+        self.wfile.write(bytes('[%s] %s' % (ctime(), data), 'utf-8'))
+
+
+tcpServer = TCP(ADDRESS, MyRequestHandler)
+print('waiting for connection...')
+tcpServer.serve_forever()
+
+###############################
+# TCP客服端
+from socket import *
+
+HOST = 'localhost'
+PORT = 21567
+BUFFZISE = 1024
+ADDRESS = (HOST, PORT)
+
+while True:
+    tcpClientSocket = socket(AF_INET, SOCK_STREAM)
+    tcpClientSocket.connect(ADDRESS)
+    data = input('>')
+    if not data:
+        break
+    tcpClientSocket.send(bytes('%s\r\n' % data, 'utf-8'))
+    data = tcpClientSocket.recv(BUFFZISE)
+    if not data:
+        break
+    print(data.decode().strip())
+    tcpClientSocket.close()
+
+###############################
+# twisted框架：TCP服务端
+from twisted.internet import protocol, reactor
+from time import ctime
+
+# 创建 Twisted Reactor TCP 服务器
+PORT = 21566
+# 创建协议类，并实现异步操作
+class TSServerProtocol(protocol.Protocol):
+    def connectionMade(self):
+        host = self.host = self.transport.getPeer().host
+        port = self.port = self.transport.getPeer().port
+        print('...connected from:(%s, %s)' % (host, port))
+
+    def dataReceived(self, data):
+        print('received data: %s' % data.decode('utf-8'))
+        self.transport.write('[%s] %s' % (ctime(), data))
+
+
+factory = protocol.Factory()    # 每次接到一个连接时，“制造”一个协议实例
+factory.protocol = TSServerProtocol     # 接收到一个请求时，就会创建一个 TSServProtocol 实例来处理那个客户端的事务
+print('waiting for connection...')
+reactor.listenTCP(PORT, factory)    # 在reactor中安装一个TCP监听器，以此检查服务请求
+reactor.run()
+
+###############################
+# twisted框架：TCP客服端
+from twisted.internet import protocol, reactor
+
+HOST = 'localhost'
+PORT = 21567
+
+class TSClientProtocol(protocol.Protocol):
+    def sendData(self):
+        data = input('>')
+        if data:
+            print('...sending %s' % data)
+            self.transport.write(bytes(data, 'tuf-8'))
+        else:
+            self.transport.loseConection()
+
+    def connectionMade(self):
+        self.sendData()
+
+    def dataReceived(self, data):
+        print(data.decode('utf-8'))
+        self.sendData()
+
+class TSClientFactory(protocol.ClientFactory):
+    protocol = TSClientProtocol
+    clientConnectionLost = clientContionFaneciled = \
+        lambda self, connector, reason: reactor.stop()
+
+
+reactor.connectTCP(HOST, PORT, TSClientFactory())
+reactor.run()
+
+###############################
+
+###############################
+
+###############################
+
+###############################
 
 ###############################
 
