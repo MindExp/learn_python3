@@ -1886,7 +1886,7 @@ class TSServerProtocol(protocol.Protocol):
 
 
 factory = protocol.Factory()    # 每次接到一个连接时，“制造”一个协议实例
-factory.protocol = TSServerProtocol     # 接收到一个请求时，就会创建一个 TSServProtocol 实例来处理那个客户端的事务
+factory.protocol = TSServerProtocol()     # 接收到一个请求时，就会创建一个 TSServProtocol 实例来处理那个客户端的事务
 print('waiting for connection...')
 reactor.listenTCP(PORT, factory)    # 在reactor中安装一个TCP监听器，以此检查服务请求
 reactor.run()
@@ -1898,30 +1898,712 @@ from twisted.internet import protocol, reactor
 HOST = 'localhost'
 PORT = 21567
 
+# 测试未通过
 class TSClientProtocol(protocol.Protocol):
     def sendData(self):
         data = input('>')
         if data:
             print('...sending %s' % data)
-            self.transport.write(bytes(data, 'tuf-8'))
+            print(dir(self.transport))
+            # 测试错误：AttributeError: 'NoneType' object has no attribute 'write'
+            self.transport.write(bytes(data, 'utf-8'))
         else:
             self.transport.loseConection()
 
     def connectionMade(self):
+        print('connected to server...')
         self.sendData()
 
     def dataReceived(self, data):
         print(data.decode('utf-8'))
         self.sendData()
 
+
 class TSClientFactory(protocol.ClientFactory):
-    protocol = TSClientProtocol
-    clientConnectionLost = clientContionFaneciled = \
+    protocol = TSClientProtocol()
+    protocol.connectionMade()
+    clientConnectionLost = clientConnectionFailed = \
         lambda self, connector, reason: reactor.stop()
 
 
 reactor.connectTCP(HOST, PORT, TSClientFactory())
 reactor.run()
+
+###############################
+"""
+FTP客户端编程主要流程：
+1. 连接到服务器
+2. 登录
+3. 发出服务请求
+4. 退出
+
+伪代码描述如下：
+from ftplib import FTP
+
+f = FTP('some.ftp.server')
+f.login('anonymous', 'your@email.address')
+    :
+f.quit()
+"""
+###############################
+# 这个程序用于下载网站中最新版本的文件
+# 测试时，无法连接到远程ftp服务器主机
+import ftplib
+import os
+import socket
+
+HOST = 'ftp.mozilla.org'
+DIRN = 'pub/mozilla/interviews'
+FILE = 'mitchell-baker-interview-oscon-2005.mp3'
+
+def main():
+    try:
+        ftp = ftplib.FTP(HOST)
+    except (socket.error, socket.gaierror) as e:
+        print('ERROR: connot reach %s' % HOST)
+        return
+    print('*** Connected to host %s' % HOST)
+    try:
+        ftp.login()     # 匿名方式登录
+    except ftplib.error_perm:
+        print('ERROR: connot login anonymously.')
+        ftp.quit()
+        return
+    print('*** Logged in as anonymous')
+    try:
+        ftp.cwd(DIRN)   # Change to a directory.
+    except ftplib.error_perm:
+        print('ERROR: connot CD to "%s"' % DIRN )
+        ftp.quit()
+        return
+    print('***Changed to "%s" folder' % DIRN)
+    try:
+        local = open(FILE, 'wb')
+        ftp.retrbinary('RETR %s ' % FILE, local.write)
+    except ftplib.error_perm:
+        print('ERROR: connot read file "%s"' % FILE)
+        os.unlink(FILE)     # 如果由于某些原因无法保存文件，则移除空的文件来避免弄乱文件系统
+    else:
+        print('***Download "%s" to CWD' % FILE)
+    ftp.quit()
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+# forked from: https://yq.aliyun.com/articles/444274
+from ftplib import FTP
+import os
+import sys
+import time
+import socket
+
+
+class MyFTP:
+    """
+        ftp自动下载、自动上传脚本，可以递归目录操作
+        作者：欧阳鹏
+        博客地址：http://blog.csdn.net/ouyang_peng/article/details/79271113
+    """
+
+    def __init__(self, host, port=21):
+        """ 初始化 FTP 客户端
+        参数:
+                 host:ip地址
+
+                 port:端口号
+        """
+        # print("__init__()---> host = %s ,port = %s" % (host, port))
+
+        self.host = host
+        self.port = port
+        self.ftp = FTP()
+        # 重新设置下编码方式
+        self.ftp.encoding = 'gbk'
+        self.log_file = open("log.txt", "a")
+        self.file_list = []
+
+    def login(self, username, password):
+        """ 初始化 FTP 客户端
+            参数:
+                  username: 用户名
+
+                 password: 密码
+            """
+        try:
+            timeout = 60
+            socket.setdefaulttimeout(timeout)
+            # 0主动模式 1 #被动模式
+            self.ftp.set_pasv(True)
+            # 打开调试级别2，显示详细信息
+            # self.ftp.set_debuglevel(2)
+
+            self.debug_print('开始尝试连接到 %s' % self.host)
+            self.ftp.connect(self.host, self.port)
+            self.debug_print('成功连接到 %s' % self.host)
+
+            self.debug_print('开始尝试登录到 %s' % self.host)
+            self.ftp.login(username, password)
+            self.debug_print('成功登录到 %s' % self.host)
+
+            self.debug_print(self.ftp.welcome)
+        except Exception as err:
+            self.deal_error("FTP 连接或登录失败 ，错误描述为：%s" % err)
+            pass
+
+    def is_same_size(self, local_file, remote_file):
+        """判断远程文件和本地文件大小是否一致
+
+           参数:
+             local_file: 本地文件
+
+             remote_file: 远程文件
+        """
+        try:
+            remote_file_size = self.ftp.size(remote_file)
+        except Exception as err:
+            # self.debug_print("is_same_size() 错误描述为：%s" % err)
+            remote_file_size = -1
+
+        try:
+            local_file_size = os.path.getsize(local_file)
+        except Exception as err:
+            # self.debug_print("is_same_size() 错误描述为：%s" % err)
+            local_file_size = -1
+
+        self.debug_print('local_file_size:%d  , remote_file_size:%d' % (local_file_size, remote_file_size))
+        if remote_file_size == local_file_size:
+            return 1
+        else:
+            return 0
+
+    def download_file(self, local_file, remote_file):
+        """从ftp下载文件
+            参数:
+                local_file: 本地文件
+
+                remote_file: 远程文件
+        """
+        self.debug_print("download_file()---> local_path = %s ,remote_path = %s" % (local_file, remote_file))
+
+        if self.is_same_size(local_file, remote_file):
+            self.debug_print('%s 文件大小相同，无需下载' % local_file)
+            return
+        else:
+            try:
+                self.debug_print('>>>>>>>>>>>>下载文件 %s ... ...' % local_file)
+                buf_size = 1024
+                file_handler = open(local_file, 'wb')
+                self.ftp.retrbinary('RETR %s' % remote_file, file_handler.write, buf_size)
+                file_handler.close()
+            except Exception as err:
+                self.debug_print('下载文件出错，出现异常：%s ' % err)
+                return
+
+    def download_file_tree(self, local_path, remote_path):
+        """从远程目录下载多个文件到本地目录
+                       参数:
+                         local_path: 本地路径
+
+                         remote_path: 远程路径
+                """
+        print("download_file_tree()--->  local_path = %s ,remote_path = %s" % (local_path, remote_path))
+        try:
+            self.ftp.cwd(remote_path)
+        except Exception as err:
+            self.debug_print('远程目录%s不存在，继续...' % remote_path + " ,具体错误描述为：%s" % err)
+            return
+
+        if not os.path.isdir(local_path):
+            self.debug_print('本地目录%s不存在，先创建本地目录' % local_path)
+            os.makedirs(local_path)
+
+        self.debug_print('切换至目录: %s' % self.ftp.pwd())
+
+        self.file_list = []
+        # 方法回调
+        self.ftp.dir(self.get_file_list)
+
+        remote_names = self.file_list
+        self.debug_print('远程目录 列表: %s' % remote_names)
+        for item in remote_names:
+            file_type = item[0]
+            file_name = item[1]
+            local = os.path.join(local_path, file_name)
+            if file_type == 'd':
+                print("download_file_tree()---> 下载目录： %s" % file_name)
+                self.download_file_tree(local, file_name)
+            elif file_type == '-':
+                print("download_file()---> 下载文件： %s" % file_name)
+                self.download_file(local, file_name)
+            self.ftp.cwd("..")
+            self.debug_print('返回上层目录 %s' % self.ftp.pwd())
+        return True
+
+    def upload_file(self, local_file, remote_file):
+        """从本地上传文件到ftp
+
+           参数:
+             local_path: 本地文件
+
+             remote_path: 远程文件
+        """
+        if not os.path.isfile(local_file):
+            self.debug_print('%s 不存在' % local_file)
+            return
+
+        if self.is_same_size(local_file, remote_file):
+            self.debug_print('跳过相等的文件: %s' % local_file)
+            return
+
+        buf_size = 1024
+        file_handler = open(local_file, 'rb')
+        self.ftp.storbinary('STOR %s' % remote_file, file_handler, buf_size)
+        file_handler.close()
+        self.debug_print('上传: %s' % local_file + "成功!")
+
+    def upload_file_tree(self, local_path, remote_path):
+        """从本地上传目录下多个文件到ftp
+           参数:
+
+             local_path: 本地路径
+
+             remote_path: 远程路径
+        """
+        if not os.path.isdir(local_path):
+            self.debug_print('本地目录 %s 不存在' % local_path)
+            return
+
+        self.ftp.cwd(remote_path)
+        self.debug_print('切换至远程目录: %s' % self.ftp.pwd())
+
+        local_name_list = os.listdir(local_path)
+        for local_name in local_name_list:
+            src = os.path.join(local_path, local_name)
+            if os.path.isdir(src):
+                try:
+                    self.ftp.mkd(local_name)
+                except Exception as err:
+                    self.debug_print("目录已存在 %s ,具体错误描述为：%s" % (local_name, err))
+                self.debug_print("upload_file_tree()---> 上传目录： %s" % local_name)
+                self.upload_file_tree(src, local_name)
+            else:
+                self.debug_print("upload_file_tree()---> 上传文件： %s" % local_name)
+                self.upload_file(src, local_name)
+        self.ftp.cwd("..")
+
+    def close(self):
+        """ 退出ftp
+        """
+        self.debug_print("close()---> FTP退出")
+        self.ftp.quit()
+        self.log_file.close()
+
+    def debug_print(self, s):
+        """ 打印日志
+        """
+        self.write_log(s)
+
+    def deal_error(self, e):
+        """ 处理错误异常
+            参数：
+                e：异常
+        """
+        log_str = '发生错误: %s' % e
+        self.write_log(log_str)
+        sys.exit()
+
+    def write_log(self, log_str):
+        """ 记录日志
+            参数：
+                log_str：日志
+        """
+        time_now = time.localtime()
+        date_now = time.strftime('%Y-%m-%d', time_now)
+        format_log_str = "%s ---> %s \n " % (date_now, log_str)
+        print(format_log_str)
+        self.log_file.write(format_log_str)
+
+    def get_file_list(self, line):
+        """ 获取文件列表
+            参数：
+                line：
+        """
+        file_arr = self.get_file_name(line)
+        # 去除  . 和  ..
+        if file_arr[1] not in ['.', '..']:
+            self.file_list.append(file_arr)
+
+    def get_file_name(self, line):
+        """ 获取文件名
+            参数：
+                line：
+        """
+        pos = line.rfind(':')
+        while (line[pos] != ' '):
+            pos += 1
+        while (line[pos] == ' '):
+            pos += 1
+        file_arr = [line[0], line[pos:]]
+        return file_arr
+
+
+if __name__ == "__main__":
+    my_ftp = MyFTP("172.28.180.117")
+    my_ftp.login("ouyangpeng", "ouyangpeng")
+
+    # 下载单个文件
+    my_ftp.download_file("G:/ftp_test/XTCLauncher.apk", "/App/AutoUpload/ouyangpeng/I12/Release/XTCLauncher.apk")
+
+    # 下载目录
+    # my_ftp.download_file_tree("G:/ftp_test/", "App/AutoUpload/ouyangpeng/I12/")
+
+    # 上传单个文件
+    # my_ftp.upload_file("G:/ftp_test/Release/XTCLauncher.apk", "/App/AutoUpload/ouyangpeng/I12/Release/XTCLauncher.apk")
+
+    # 上传目录
+    # my_ftp.upload_file_tree("G:/ftp_test/", "/App/AutoUpload/ouyangpeng/I12/")
+
+    my_ftp.close()
+
+###############################
+from time import ctime, sleep
+
+# 使用单线程执行循环
+def loopOne(sleep_time):
+    print('start loop one at: %s' % ctime())
+    sleep(sleep_time)
+    print('loop one done at: %s' % ctime())
+
+def loopTwo(sleep_time):
+    print('start loop two at: %s' % ctime())
+    sleep(sleep_time)
+    print('loop two done at: %s' % ctime())
+
+def main():
+    print('starting at: %s' % ctime())
+    loopOne(4)
+    loopTwo(6)
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+from time import ctime, sleep
+import _thread
+
+# 使用_thread模块（强烈不建议使用该模块，建议使用高级threading模块）
+# 使用不可靠的sleep()进行同步
+def loopOne(sleep_time):
+    print('start loop one at: %s' % ctime())
+    sleep(sleep_time)
+    print('loop one done at: %s' % ctime())
+
+def loopTwo(sleep_time):
+    print('start loop two at: %s' % ctime())
+    sleep(sleep_time)
+    print('loop two done at: %s' % ctime())
+
+def main():
+    print('starting at: %s' % ctime())
+    # start_new_thread()必须包含开始的两个参数，于是即使要执行的函数不需要参数，也需要传递一个空元组
+    _thread.start_new_thread(loopOne, (4, ))    # 参数以元祖形式传递
+    _thread.start_new_thread(loopTwo, (6, ))
+    sleep(10)   # 如不适用该语句，当主线程结束时会强制结束所有子线程
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+###############################
+from time import ctime, sleep
+import _thread
+
+loops = [4, 2]
+
+# 使用_thread模块，锁进行同步
+def loop(loop_number, sleep_time, lock):
+    print('start loop %s at: %s' % (loop_number, ctime()))
+    sleep(sleep_time)
+    print('loop %s done at: %s' % (loop_number, ctime()))
+    lock.release()
+
+def main():
+    print('starting at: %s' % ctime())
+    locks = []
+    loop_numbers = range(len(loops))
+
+    # 分配锁
+    for i in loop_numbers:
+        lock = _thread.allocate_lock()
+        lock.acquire()  # 通过acquire()方法取得（每个锁），取得锁效果相当于“上锁”
+        locks.append(lock)
+
+    # 启动已上锁线程
+    for loop_number in loop_numbers:
+        _thread.start_new_thread(loop, (loop_number, loops[loop_number], locks[loop_number]))   # 立即执行
+
+    for i in loop_numbers:
+        while locks[i].locked():
+            pass
+
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+from time import ctime, sleep
+import threading
+
+loops = [4, 2]
+"""
+使用 threading 模块中 Thread 类创建线程
+
+    方法一（推荐）：创建 Thread 的实例，传给它一个函数
+"""
+def loop(loop_number, sleep_time):
+    print('start loop %s at: %s' % (loop_number, ctime()))
+    sleep(sleep_time)
+    print('loop %s done at: %s' % (loop_number, ctime()))
+
+def main():
+    print('starting at: %s' % ctime())
+    threads = []
+    loop_numbers = range(len(loops))
+
+    for i in loop_numbers:
+        thread = threading.Thread(target=loop, args=(i, loops[i]))
+        threads.append(thread)
+
+    # 启动已上锁线程
+    for i in loop_numbers:
+        threads[i].start()  # start threads
+
+    for i in loop_numbers:  
+        # join()方法只有在你需要等待线程完成的时候才是有用的，否则无需调用
+        threads[i].join()   # 等待线程结束
+
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+from time import ctime, sleep
+import threading
+
+loops = [4, 2]
+"""
+使用 threading 模块中 Thread 类创建线程
+
+    方法二（不推荐）：创建 Thread 的实例，传给它一个可调用的类实例
+"""
+class ThreadFunc(object):
+    def __init__(self, func, args, name=''):
+        self.func = func
+        self.name = name
+        self.args = args
+
+    def __call__(self, *args, **kwargs):    # 实现可调用类
+        self.func(*self.args)
+       
+def loop(loop_number, sleep_time):
+    print('start loop %s at: %s' % (loop_number, ctime()))
+    sleep(sleep_time)
+    print('loop %s done at: %s' % (loop_number, ctime()))
+
+def main():
+    print('starting at: %s' % ctime())
+    threads = []
+    loop_numbers = range(len(loops))
+
+    for i in loop_numbers:
+        thread = threading.Thread(target=ThreadFunc(loop, (i, loops[i])))
+        threads.append(thread)
+
+    # 启动已上锁线程
+    for i in loop_numbers:
+        threads[i].start()  # start threads
+
+    for i in loop_numbers:
+        # join()方法只有在你需要等待线程完成的时候才是有用的，否则无需调用
+        threads[i].join()   # 等待线程结束
+
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+from time import ctime, sleep
+import threading
+
+loops = [4, 2]
+"""
+使用 threading 模块中 Thread 类创建线程
+
+    方法三（强烈推荐）：派生 Thread 的子类，并创建子类的实例
+"""
+class MyThread(threading.Thread):
+    def __init__(self, func, args, name=''):
+        threading.Thread.__init__(self)
+        self.func = func
+        self.name = name
+        self.args = args
+
+    def run(self):
+        self.func(*self.args)
+
+def loop(loop_number, sleep_time):
+    print('start loop %s at: %s' % (loop_number, ctime()))
+    sleep(sleep_time)
+    print('loop %s done at: %s' % (loop_number, ctime()))
+
+def main():
+    print('starting at: %s' % ctime())
+    threads = []
+    loop_numbers = range(len(loops))
+
+    for i in loop_numbers:
+        thread = MyThread(loop, (i, loops[i]))
+        threads.append(thread)
+
+    # 启动已上锁线程
+    for i in loop_numbers:
+        threads[i].start()  # start threads
+
+    for i in loop_numbers:
+        # join()方法只有在你需要等待线程完成的时候才是有用的，否则无需调用
+        threads[i].join()   # 等待线程结束
+
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+import threading
+from time import ctime
+
+# 自定义 MyThread 独立模块
+class MyThread(threading.Thread):
+    def __init__(self, func, args, name=''):
+        threading.Thread.__init__(self)
+        self.func = func
+        self.args = args
+        self.name = name
+        self.result = None
+
+    def getResult(self):
+        return self.result
+
+    def run(self):
+        print('starting %s at: %s' % (self.name, ctime()))
+        self.result = self.func(*self.args)
+        print('%s finished at: %s' % (self.name, ctime()))
+
+###############################
+from myThread import MyThread
+from time import ctime, sleep
+
+def fib(x):
+    sleep(0.005)
+    if x < 2:
+        return 1
+    return fib(x-1) + fib(x-2)
+
+def fac(x):
+    sleep(0.1)
+    if x < 2:
+        return 1
+    return x * fac(x-1)
+
+def sum(x):
+    if x < 2:
+        return 1
+    return x + sum(x-1)
+
+
+funcs = [fib, fac, sum]
+n = 12
+
+def main():
+    nfuncs = range(len(funcs))
+
+    print('***SINGLE THREAD***')
+    for i in nfuncs:
+        print('starting %s at: %s' % (funcs[i].__name__, ctime()))
+        print(funcs[i](n))
+        print('%s finished at: %s' % (funcs[i].__name__, ctime()))
+
+    print('***MULTIPLE THREADS***')
+    threads = []
+    # 创建线程
+    for i in nfuncs:
+        thread = MyThread(funcs[i], (n, ), funcs[i].__name__)
+        threads.append(thread)
+    # 启动线程
+    for i in nfuncs:
+        threads[i].start()
+    #  获取线程执行结果
+    for i in nfuncs:
+        threads[i].join()
+        print(threads[i].getResult())
+
+    print('all done.')
+
+
+if __name__ == '__main__':
+    main()
+
+###############################
+from atexit import register
+from re import compile
+from time import ctime
+from urllib.request import urlopen as uopen
+
+REGEX = compile('#([\d,]+) in Books')
+AMZN = 'http://amazon.com/dp/'
+ISBNs = {
+    '0132678209': 'Core Python Programming, Third Edition',
+    '0132356139': 'Python Web Development with Django',
+    '0137143419': 'Python Fundamentals',
+}
+
+def getRanking(isbn):
+    page = uopen('%s%s' % (AMZN, isbn))  # or page = uopen('{0}{1}'.format(AMZN, isbn))
+    data = page.read().decode('utf-8')  # 使用read()下载整个网页
+    # print(data)   # 打印网页源码
+    page.close()    # 关闭文件
+    return REGEX.findall(data)[0]
+
+def _showRanking(isbn):
+    print('- %r ranked %s' % (ISBNs[isbn], getRanking(isbn)))
+
+def _main():
+    print('At %s on Amazon...' % ctime())
+    for isbn in ISBNs:
+        _showRanking(isbn)
+
+@register
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
+
+###############################
 
 ###############################
 
