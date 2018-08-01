@@ -2570,10 +2570,14 @@ if __name__ == '__main__':
 from atexit import register
 from re import compile
 from time import ctime
-from urllib.request import urlopen as uopen
+from urllib.request import urlopen
 
-REGEX = compile('#([\d,]+) in Books')
-AMZN = 'http://amazon.com/dp/'
+"""
+    本例本身无错，但是可能由于墙的源域导致（HTTP Error 503: Service Unavailable）
+    在该简单案例中可以使用正则表达式提取网页中需求信息，但是在网络爬虫阶段则需要更强大的标记解析器，如标准库中的HTMLParser，第三方工具BeautifulSoup、html5lib或者lxml等
+"""
+REGEX = compile('#([\d,]+) in Books')   # 可使用正则表达式编译bytes类型，如：REGEX = compile(b'#([\d,]+) in Books')，如此则后续read()方法后不需要decode()
+AMAZON = 'http://amazon.com/dp/'
 ISBNs = {
     '0132678209': 'Core Python Programming, Third Edition',
     '0132356139': 'Python Web Development with Django',
@@ -2581,19 +2585,116 @@ ISBNs = {
 }
 
 def getRanking(isbn):
-    page = uopen('%s%s' % (AMZN, isbn))  # or page = uopen('{0}{1}'.format(AMZN, isbn))
+    page = urlopen('%s%s' % (AMAZON, isbn))  # or page = uopen('{0}{1}'.format(AMAZON, isbn))
     data = page.read().decode('utf-8')  # 使用read()下载整个网页
     # print(data)   # 打印网页源码
     page.close()    # 关闭文件
-    return REGEX.findall(data)[0]
+    return REGEX.findall(data)[0]   # 如果正则表达式与预期一样精确，应当有且只有一个匹配
 
-def _showRanking(isbn):
+def _showRanking(isbn):     # 函数名最前面的单下划线表示这是一个特殊函数，只能被本模块的代码使用，不能被其他使用本文件作为库或者工具模块的应用导入
     print('- %r ranked %s' % (ISBNs[isbn], getRanking(isbn)))
 
 def _main():
     print('At %s on Amazon...' % ctime())
     for isbn in ISBNs:
         _showRanking(isbn)
+
+@register   # 使用装饰器注册退出函数
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
+
+###############################
+from atexit import register
+from re import compile
+from time import ctime
+from urllib.request import urlopen
+from threading import Thread
+
+REGEX = compile('#([\d,]+) in Books')
+AMAZON = 'http://amazon.com/dp/'
+ISBNs = {
+    '0132678209': 'Core Python Programming, Third Edition',
+    '0132356139': 'Python Web Development with Django',
+    '0137143419': 'Python Fundamentals',
+}
+
+def getRanking(isbn):
+    page = urlopen('%s%s' % (AMAZON, isbn))  # or page = uopen('{0}{1}'.format(AMAZON, isbn))
+    data = page.read().decode('utf-8')  # 使用read()下载整个网页
+    # print(data)   # 打印网页源码
+    page.close()    # 关闭文件
+    return REGEX.findall(data)[0]   # 如果正则表达式与预期一样精确，应当有且只有一个匹配
+
+def _showRanking(isbn):     # 函数名最前面的单下划线表示这是一个特殊函数，只能被本模块的代码使用，不能被其他使用本文件作为库或者工具模块的应用导入
+    print('- %r ranked %s' % (ISBNs[isbn], getRanking(isbn)))
+
+def _main():
+    print('At %s on Amazon...' % ctime())
+    for isbn in ISBNs:
+        """
+            本例：分配线程并同时启动
+            另可：先集体分配线程再集体启动线程
+        """
+        Thread(target=_showRanking, args=(isbn, )).start()
+
+@register   # 使用装饰器注册退出函数，从而主线程不会在派生线程完成前退出脚本，否则需要使用线程的join()用于阻塞主线程
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
+
+###############################
+"""
+Python 主要移植命令
+    1. 2to3 filename.py  # only output diff
+    2. 2to3 -w filename.py  # overwrites w/3.x code, and rename 2.x version filename.py to filenme.py.bak
+可选步骤：
+    1. mv filename2.py filename3.py  # rename the former to the latter
+    2. mv filename.py.bak filename2.py
+
+主要移植方法：
+    1. 确保源码所有单元测试和集成测试都已通过
+    2. 使用2to3（或其他工具）进行所有初步基础修改
+    3. 进行进一步善后移植修改，让代码运行起来并通过相同的测试
+"""
+###############################
+from atexit import register
+from time import ctime, sleep
+from threading import Thread, currentThread
+from random import randrange
+
+class CleanOutPutSet(set):
+    def __str__(self):
+        return ','.join(x for x in self)
+
+
+loops = (randrange(2, 5) for i in range(randrange(3, 7)))
+remaining = CleanOutPutSet()
+
+def loop(sleep_time):
+    thread_name = currentThread().name
+    remaining.add(thread_name)
+    print('[%s] started %s' % (ctime(), thread_name))
+    sleep(sleep_time)
+    """
+        后续由于多线程共同操作共享变量 remaining 且未进行同步而输出异常
+        临界区：
+            1. I/O
+            2. 相同数据结构
+    """
+    remaining.remove(thread_name)
+    print('[%s] completed %s (%d seconds)' % (ctime(), thread_name, sleep_time))
+    print('remaining: %s' % remaining or 'None')
+
+def _main():
+    for sleep_time in loops:
+        Thread(target=loop, args=(sleep_time, )).start()
 
 @register
 def _atexit():
@@ -2604,25 +2705,316 @@ if __name__ == '__main__':
     _main()
 
 ###############################
+from atexit import register
+from time import ctime, sleep
+from threading import Thread, currentThread, Lock, enumerate
+from random import randrange
+
+"""
+    使用 Lock 自带方法访问临界区资源：
+        1. lock.acquire()
+        2. lock.release() 
+"""
+class CleanOutPutSet(set):
+    def __str__(self):
+        return ','.join(x for x in self)
+
+
+loops = (randrange(2, 5) for i in range(randrange(3, 7)))
+remaining = CleanOutPutSet()
+lock = Lock()
+
+def loop(sleep_time):
+    thread_name = currentThread().name
+    lock.acquire()
+    remaining.add(thread_name)
+    print('[%s] started %s' % (ctime(), thread_name))
+    lock.release()
+    sleep(sleep_time)
+    print(enumerate())  # 以列表形式显示当前正在运行的线程
+    lock.acquire()
+    remaining.remove(thread_name)
+    print('[%s] completed %s (%d seconds)' % (ctime(), thread_name, sleep_time))
+    print('remaining: %s' % remaining or 'None')
+    lock.release()
+
+def _main():
+    for sleep_time in loops:
+        Thread(target=loop, args=(sleep_time, )).start()
+
+@register
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
 
 ###############################
+from atexit import register
+from time import ctime, sleep
+from threading import Thread, currentThread, Lock, enumerate
+from random import randrange
+
+"""
+    使用上下文管理器访问临界区资源：
+        with lock:
+            ...
+"""
+class CleanOutPutSet(set):
+    def __str__(self):
+        return ','.join(x for x in self)
+
+
+loops = (randrange(2, 5) for i in range(randrange(3, 7)))
+remaining = CleanOutPutSet()
+lock = Lock()
+
+def loop(sleep_time):
+    thread_name = currentThread().name
+    with lock:
+        remaining.add(thread_name)
+        print('[%s] started %s' % (ctime(), thread_name))
+    sleep(sleep_time)
+    print(enumerate())  # 以列表形式显示当前正在运行的线程
+    with lock:
+        remaining.remove(thread_name)
+        print('[%s] completed %s (%d seconds)' % (ctime(), thread_name, sleep_time))
+        print('remaining: %s' % remaining or 'None')
+
+def _main():
+    for sleep_time in loops:
+        Thread(target=loop, args=(sleep_time, )).start()
+
+@register
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
 
 ###############################
+from atexit import register
+from time import ctime, sleep
+from threading import Thread, Lock, BoundedSemaphore
+from random import randrange
+
+"""
+    使用信号量机制模拟生产者-消费者问题    
+"""
+lock = Lock()
+MAX = 5
+candytray = BoundedSemaphore(MAX)  # 限定信号量
+
+def refill():
+    lock.acquire()
+    print('Refilling candy...')
+    if candytray.acquire(False):  # 请求资源，初始请求状态标记 False
+        print('Refilled')
+    else:
+        print('full, skipping')
+    lock.release()
+
+def buy():
+    lock.acquire()
+    print('Buying candy...')
+    try:
+        candytray.release()  # 释放资源
+    except ValueError:
+        print('empty, skipping')
+    else:
+        print('OK')
+    lock.release()
+
+def producer(loops):
+    for i in range(loops):
+        refill()
+        sleep(randrange(3))
+
+def consumer(loops):
+    for i in range(loops):
+        buy()
+        sleep(randrange(3))
+
+def _main():
+    print('starting at: %s' % ctime())
+    nloops = randrange(2, 6)
+    print('THE CANDY MACHINE (full with %d bars)!' % MAX)
+    Thread(target=producer, args=(nloops,)).start()
+    Thread(target=consumer, args=(randrange(nloops, nloops+5), )).start()
+
+@register
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
 
 ###############################
+from atexit import register
+from time import ctime, sleep
+from threading import Thread, Lock, BoundedSemaphore
+from random import randrange
+
+"""
+    使用信号量机制模拟生产者-消费者问题    
+"""
+class MyBoundedSemaphore(BoundedSemaphore):
+    def __init__(self, value):
+        BoundedSemaphore.__init__(self, value)
+
+    def getSemaphore(self):
+        return self._value
+
+
+lock = Lock()
+MAX = 3
+candytray = MyBoundedSemaphore(MAX)  # 限定信号量
+
+def refill():
+    lock.acquire()
+    print('Semaphore = %d, ready to refil candy...' % candytray.getSemaphore())
+    if candytray.acquire(False):  # 请求资源，初始请求状态标记 False
+        print('Refilled')
+    else:
+        print('full, skipping')
+    lock.release()
+
+def buy():
+    lock.acquire()
+    print('Semaphore = %d, ready to buy candy...' % candytray.getSemaphore())
+    try:
+        candytray.release()  # 释放资源
+    except ValueError:
+        print('empty, skipping')
+    else:
+        print('OK')
+    lock.release()
+
+def producer(loops):
+    for i in range(loops):
+        refill()
+        sleep(randrange(3))
+
+def consumer(loops):
+    for i in range(loops):
+        buy()
+        sleep(randrange(3))
+
+def _main():
+    print('starting at: %s' % ctime())
+    nloops = randrange(2, 6)
+    print('THE CANDY MACHINE (full with %d bars)!' % MAX)
+    Thread(target=producer, args=(nloops,)).start()
+    Thread(target=consumer, args=(randrange(nloops, nloops+5), )).start()
+
+@register
+def _atexit():
+    print('all done at: %s' % ctime())
+
+
+if __name__ == '__main__':
+    _main()
 
 ###############################
+from random import randint
+from time import sleep
+from queue import Queue
+from myThread import MyThread
+
+"""
+    使用 Queue/queue 模块模拟生产者-消费者问题
+"""
+def writeQ(queue):
+    print('producing object for Q...')
+    queue.put('xxx', 1)
+    print('size now is: %d' % queue.qsize())
+
+def readQ(queue):
+    queue.get(1)
+    print('consumed object from Q...,size now is: %d' % queue.qsize())
+
+def writer(queue, loops):
+    for i in range(loops):
+        writeQ(queue)
+        sleep(randint(1, 3))
+
+def reader(queue, loops):
+    for i in range(loops):
+        readQ(queue)
+        sleep(randint(2, 5))
+
+
+funcs = [writer, reader]
+nfuncs = range(len(funcs))
+
+def _main():
+    nloops = randint(2, 5)
+    queue = Queue(32)
+
+    threads = []
+    for i in nfuncs:
+        thread = MyThread(funcs[i], (queue, nloops), funcs[i].__name__)
+        threads.append(thread)
+
+    for i in nfuncs:
+        threads[i].start()
+
+    for i in nfuncs:
+        threads[i].join()
+
+    print('all done...')
+
+
+if __name__ == '__main__':
+    _main()
 
 ###############################
+"""
+使用 concurrent.future 模块中线程池进行高级任务管理主要步骤：
 
+from concurrent.futures import ThreadPoolExecutor
+    ...
+def _main():
+    print('At', ctime(), 'on Amazon...')
+    with ThreadPoolExecutor(3) as executor:  #线程池大小为3
+        for isbn in ISBNs:
+            executor.submit(_showRanking, isbn)
+    print('all DONE at:', ctime())
+"""
 ###############################
+from concurrent.futures import ThreadPoolExecutor
+from re import compile
+from time import ctime
+from urllib.request import urlopen
+"""
+    使用 concurrent.future 模块中线程池进行高级任务管理
+"""
 
-###############################
+REGEX = compile('#([\d,]+) in Books')
+AMAZON = 'http://amazon.com/dp/'
+ISBNs = {
+    '0132678209': 'Core Python Programming, Third Edition',
+    '0132356139': 'Python Web Development with Django',
+    '0137143419': 'Python Fundamentals',
+}
 
-###############################
+def getRanking(isbn):
+    with urlopen('{0}{1}'.format(AMAZON, isbn)) as page:
+        return str(REGEX.findall(page.read())[0], 'utf-8')
 
-###############################
+def _main():
+    print('At %s on Amazon.' % ctime())
+    with ThreadPoolExecutor(3) as executor:
+        for isbn, ranking in zip(ISBNs, executor.map(getRanking, ISBNs)):
+            print('- %r ranked %s' % (ISBNs[isbn], ranking))
+        print('all done at: %s' % ctime())
 
+
+if __name__ == '__main__':
+    _main()
 ###############################
 
 ###############################
