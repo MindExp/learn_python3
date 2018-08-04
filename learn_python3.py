@@ -2989,10 +2989,10 @@ from concurrent.futures import ThreadPoolExecutor
 from re import compile
 from time import ctime
 from urllib.request import urlopen
+
 """
     使用 concurrent.future 模块中线程池进行高级任务管理
 """
-
 REGEX = compile('#([\d,]+) in Books')
 AMAZON = 'http://amazon.com/dp/'
 ISBNs = {
@@ -3003,7 +3003,7 @@ ISBNs = {
 
 def getRanking(isbn):
     with urlopen('{0}{1}'.format(AMAZON, isbn)) as page:
-        return str(REGEX.findall(page.read())[0], 'utf-8')
+        return REGEX.findall(page.read().decode('utf-8'))[0]
 
 def _main():
     print('At %s on Amazon.' % ctime())
@@ -3015,24 +3015,172 @@ def _main():
 
 if __name__ == '__main__':
     _main()
-###############################
 
 ###############################
+"""
+扩展 python
+    完整实现一个扩展主要围绕“封装”相关概念
+    实现扩展语言与 python 的无缝连接用到的主要接口代码通常称为样板（boilerplate）代码
+    样板代码主要包含以下四个不封：
+        1. 在扩展文件中包含 python 头文件   # # include "Python.py"
+        2. 为每一个模块函数添加形如 static PyObject* Module_func() 的封装函数  # static PyObject* ModuleName_func()
+            此后即可在 python 脚本中导入扩展文件。  # from ModuleName import func
+        3. 为每一个模块函数添加一个 PyMethodDef ModuleMethods[]  # 在 python 脚本中声明代理函数，让 Python 解释器知道如何导入并访问这些函数
+        4. 添加模块初始化函数 void initModule()
 
-###############################
+STEP 1:
+    纯 C 版本扩展程序（Extest.c）
 
-###############################
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
 
-###############################
+    int fac(n)      // 求阶乘模块函数
+    {
+        if (n < 2):
+            return 1;
+        else:
+            return n * fac(n-1);
+    }
 
-###############################
+    char *reverse(char *s)      // 字符串逆转模块函数
+    {
+        register char t, *p=s, *q=(s + (len(s) - 1));
+        while(p < q)
+        {
+            t = *p;
+            *p++ = *q;
+            *q-- = t;
+        }
+        return s
+    }
 
-###############################
+    BUFSIZE = 1024
 
-###############################
+    int main()
+    {
+        char s[BUFSIZE];
+        printf("4! == %d\n", fac(4)):
+        printf("8! == %d\n", fac(8)):
+        printf("12! == %d\n", fac(12)):
+        strcpy(s, "admin");
+        printf("reversing 'admin', we got '%s'\n", reverse(s));
+        return 0;
+    }
 
-###############################
+STEP 2:
+    模块函数 fac() 的封装函数 Extest_fac() 如下：
 
-###############################
+    static PyObject *
+    Extest_fac(PyObject *self, PyObject *args){
+        int res;    # parse result
+        int num;    # arg for fac()
+        PyObject * ret_value
+
+        res = PyArg_ParseTuple(args, "i", &num);  // 将 python 元组中的系列参数转换为 C 中的参数
+        if (!res)   # TypeError
+            return NULL;
+        res = fac(num);
+        ret_value = (PyObject *)Py_BuildValue("i", res);  // 将 C 数据值转换为 python 返回数据对象
+        return ret_value
+    }
+
+    简化封装函数 Extest_fac() 如下：
+
+    // 通过使用避免中间变量简化代码
+    static PyObject *
+    Extest_fac(PyObject *self, PyObject *args){
+        if (!PyArg_ParseTuple(args, "i", &num)):
+            return NULL;
+        return (PyObject *)Py_BuildValue("i", fac(num));
+    }
+
+    // 修改 reverse() 使其以元组的形式返回原始字符串和新逆序的字符串
+    static PyObject *
+    Extest_doppel(PyObject *self, PyObject *args)
+    {
+        char *origin_str;
+
+        if (!PyArg_ParseTuple(args, "s", &origin_str))
+            return NULL;
+        // strdup() 用于创建原始字符串的副本，使用“ss”转换字符串将两个字符串放在一个元组中
+        // 该部分在 C 语言中会发生内存泄漏，strdup(origin_str)创建新字符串后未回收内存
+        return (PyObject *)Py_BuildValue("ss", origin_str, reverse(strdup(origin_str)));
+    }
+
+    修正 Extest_doppel() 封装函数如下：
+
+    static PyObject *
+    Extest_doppel(PyObject *self, PyObject *args)
+    {
+        char *origin_str;
+        char *dupe_str;
+        char re_value;
+
+        dupe_str = strdup(origin_str)
+
+        if (!PyArg_ParseTuple(args, "s", &origin_str))
+            return NULL;
+        dupe_str = strdup(origin_str);
+        // strdup() 用于创建原始字符串的副本，使用“ss”转换字符串将两个字符串放在一个元组中
+        re_value = (PyObject *)Py_BuildValue("ss", origin_str, reverse(dupe_str));
+        free(dupe_str);    // 释放内存
+        return re_value;
+    }
+
+
+    为模块编写 PyMethodDef ModuleMethods[] 数组，让 python 解释器知道如何导入并访问这些函数
+    ModuleMethods[] 数组由多个子数组组成，每个子数组含有一个函数的相关信息，母数组以 NULL 数组结尾，表示在此结束
+
+STEP 3:
+    为 Extest 模块创建 ExtestMethods[] 数组如下：
+
+    static PyMethodsDef
+    ExtestMethods[] = {
+        /*
+            position_1: 给出在 python 中访问需要使用的名称，
+            posiiton_2: 对应的封装函数
+            position_3: 常量 METH_VARARGS 表示参数以元组的形式给定
+        */
+
+        {"fac", Extest_fac, METH_VARARGS},
+        {"doppel", Extest_doppel, METH_VARARGS},
+        {NULL, NULL},
+    }
+
+STEP 4:
+    添加模块初始化函数 void initModule()，当解释器导入该模块时会自动调用该段代码
+    如下代码中只调用了 Py_initModule() 函数，这样解释器就可以访问模块函数
+    /*
+        arg_1: 模块名称
+        arg_2: ModuleMethods[] 数组
+    */
+
+    void initExtest()
+    {
+        Py_InitModule("Extest", ExtestMethods);
+    }
+
+通过以上 STEP 1、STEP 2、STEP 3、STEP 4 便完成了扩展程序的所有封装任务
+
+为了构建新的 python 封装扩展，需要将其与 python 库一同编译，现在主要使用 distutils 包来构建、安装和发布模块、扩展和软件包
+
+使用 distutils 主要通过以下步骤构建扩展：
+    1. 创建 setup.py
+    2. 运行 setup.py 来编译并链接代码
+    3. 在 Python 中导入模块
+    4. 测试函数
+
+
+STEP 1:
+    创建 setup.py
+        大部分编译工作由 setup()函数完成，为了构建扩展模块，需要为每个扩展创建一个 Extension 实例
+
+        # arg_1: 扩展的完整名称；arg_2: sources 参数是所有源码文件的列表
+        Extension('Extest', sources = ['Extest.c'])
+
+    ...
+    【本章后续部分暂停】
+"""
 
 ###############################
