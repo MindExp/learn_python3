@@ -3184,3 +3184,29 @@ STEP 1:
 """
 
 ###############################
+import csv
+from distutils.log import warn as printf
+
+
+DATA = (
+    (9, 'Web Clients and Servers', 'base64, urllib'),
+    (10, 'Web Programming: CGI & WSGI', 'cgi, time, wsgiref'),
+    (13, 'Web Services', 'urllib, twython'),
+)
+
+print('*** WRITING CSV DATA')
+file = open('F:\Projects\Sublime\learning_notes\csvdaat.csv', 'w')
+writer = csv.writer(file)
+# writer.writerows(DATA)
+for record in DATA:
+    writer.writerow(record)
+file.close()
+
+print('*** REVIEW OF SAVED DATA')
+file = open('F:\Projects\Sublime\learning_notes\csvdaat.csv', 'r')
+reader = csv.reader(file)
+for file, title, modpkgs in reader:
+    printf('Chapter %s: %r (featuring %s)' % (chap, title, modpkgs))
+file.close()
+
+###############################
