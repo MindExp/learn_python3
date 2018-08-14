@@ -1,21 +1,24 @@
 ###############################
 from urllib.request import urlopen
-from urllib.error import HTTPError
 from bs4 import BeautifulSoup
+from urllib.error import HTTPError
+from urllib.error import URLError
 
 try:
     html = urlopen('https://cn.bing.com')
-    if html is None:  # 服务器访问结果检查
-        print('URL is not found.')
-        exit()
 except HTTPError as e:
     print(e)
 else:
-    bsObj = BeautifulSoup(html.read(), 'html5lib')
-    if bsObj.title is None:  # 标签检查
-        print('Tag title is not found')
+    try:
+    	bs = BeautifulSoup(html.read(), 'html.parser')
+        bad_content = bs.non_existing_tag.another_tag
+    except AttributeError as e:
+        print('non_existing_tag was not found!')
     else:
-        print(bsObj.title)
+        if bad_content is None:
+            print('another_tag was not found!')
+        else:
+            print(bad_content)
 
 ###############################
 from urllib.request import urlopen
@@ -357,3 +360,671 @@ if __name__ == '__main__':
     main()
 
 ###############################
+from bs4 import BeautifulSoup
+import requests
+
+class Content(object):
+    """
+        Common base class for all articles/pages
+    """
+    def __init__(self, url=None, title=None, body=None):
+        self.url = url
+        self.title = title
+        self.body = body
+
+    def print(self):
+        print('Title: {}'.format(self.title))
+        print('URL: {}'.format(self.url))
+        print('Body: {}'.format(self.body))
+
+def getPage(url):
+    req = requests.get(url)
+    return BeautifulSoup(req.content, 'html.parser')
+
+def scrapePeople(url):
+    bs = getPage(url)
+    title = bs.find('h1').get_text()
+    body = bs.find('div', {'class': 'box_con', 'id': 'rwb_zw'}).text
+    return Content(url, title, body)
+
+def scrapeBrookings(url):
+    bs = getPage(url)
+    title = bs.find('h1').text
+    body = bs.find('div', {'class': ['post-body', 'post-body-enhanced']}).text
+    return Content(url, title, body)
+
+
+url = 'http://tw.people.com.cn/n1/2018/0809/c14657-30217760.html'
+scrapePeople(url).print()
+url = 'https://www.brookings.edu/blog/future-development/2018/01/26/delivering-inclusive-urban-access-3-uncomfortable-truths/'
+scrapeBrookings(url).print()
+
+###############################
+from bs4 import BeautifulSoup
+import requests
+
+class Content:
+    """
+    Common base class for all articles/pages
+    """
+
+    def __init__(self, url, title, body):
+        self.url = url
+        self.title = title
+        self.body = body
+
+    def print(self):
+        """
+        Flexible printing function controls output
+        """
+        print("URL: {}".format(self.url))
+        print("TITLE: {}".format(self.title))
+        print("BODY:\n{}".format(self.body))
+
+
+class Website:
+    """
+    Contains information about website structure
+    """
+
+    def __init__(self, name, url, titleTag, bodyTag):
+        self.name = name
+        self.url = url
+        self.titleTag = titleTag
+        self.bodyTag = bodyTag
+
+class Crawler:
+
+    def getPage(self, url):
+        try:
+            req = requests.get(url)
+        except requests.exceptions.RequestException as e:
+            print('{}\n{}'.format(url, e))
+            return None
+        return BeautifulSoup(req.text, 'html.parser')
+
+    def safeGet(self, pageObj, selector):
+        """
+        BeautifulSoup select function with a single string CSS selector for each
+        piece of information you want to collect and put all of these selectors in a
+        dictionary object
+
+        Utilty function used to get a content string from a Beautiful Soup
+        object and a selector. Returns an empty string if no object
+        is found for the given selector
+        """
+        selectedElems = pageObj.select(selector)
+        if selectedElems is not None and len(selectedElems) > 0:
+        	# return selectedElems[0].get_text()
+            return '\n'.join([elem.get_text() for elem in selectedElems])
+        return ''
+
+    def parse(self, site, url):
+        """
+        Extract content from a given page URL
+        """
+        bs = self.getPage(url)
+        try:
+            title = self.safeGet(bs, site.titleTag)
+            body = self.safeGet(bs, site.bodyTag)
+            if title != '' and body != '':
+                content = Content(url, title, body)
+                content.print()
+        except AttributeError as e:
+            print('{}\n{}'.format(url, e))
+            return None
+
+
+crawler = Crawler()
+
+siteData = [
+    # <section id="product-description">...</section>
+    ['O\'Reilly Media', 'http://oreilly.com', 'h1', 'section#product-description'],
+    ['Reuters', 'http://reuters.com', 'h1', 'div.StandardArticleBody_body_1gnLA'],
+    # <div class="post-body post-body-enhanced" itemprop="articleBody">...</div>
+    ['Brookings', 'http://www.brookings.edu', 'h1', 'div.post-body'],
+    ['New York Times', 'http://nytimes.com', 'h1', 'p.story-content']
+]
+
+websites = []
+
+for row in siteData:
+    websites.append(Website(row[0], row[1], row[2], row[3]))
+
+crawler.parse(websites[0],
+              'http://shop.oreilly.com/product/0636920028154.do')
+crawler.parse(
+    websites[1], 'http://www.reuters.com/article/us-usa-epa-pruitt-idUSKBN19W2D0')
+crawler.parse(
+    websites[2],
+    'https://www.brookings.edu/blog/techtank/2016/03/01/idea-to-retire-old-methods-of-policy-education/')
+crawler.parse(
+    websites[3],
+    'https://www.nytimes.com/2018/01/28/business/energy-environment/oil-boom.html')
+
+###############################
+"""
+	Crawling Sites Through Search
+	应用：通过搜索关键词，在搜索结果中爬取需求内容
+"""
+from bs4 import BeautifulSoup
+import requests
+
+class Content:
+    """
+    Common base class for all articles/pages
+    """
+
+    def __init__(self, topic, url, title, body):
+        self.topic = topic
+        self.title = title
+        self.body = body
+        self.url = url
+
+    def print(self):
+        """
+        Flexible printing function controls output
+        """
+        print("New article found for topic: {}".format(self.topic))
+        print("URL: {}".format(self.url))
+        print("TITLE: {}".format(self.title))
+        print("BODY:\n{}".format(self.body))
+
+
+class Website:
+    """
+    Contains information about website structure
+    """
+
+    def __init__(self, name, url, searchUrl, resultListing, resultUrl, absoluteUrl, titleTag, bodyTag):
+        self.name = name
+        self.url = url
+        self.searchUrl = searchUrl
+        self.resultListing = resultListing
+        self.resultUrl = resultUrl
+        self.absoluteUrl = absoluteUrl
+        self.titleTag = titleTag
+        self.bodyTag = bodyTag
+
+class Crawler:
+
+    def getPage(self, url):
+        """
+        :param url:
+        :return:页面 bs 对象
+        """
+        try:
+            req = requests.get(url)
+        except requests.exceptions.RequestException as e:
+            print('{}\n{}'.format(url, e))
+            return None
+        return BeautifulSoup(req.content, 'html.parser')
+
+    def safeGet(self, pageObj, selector):
+        """
+        BeautifulSoup select function with a single string CSS selector for each
+        piece of information you want to collect and put all of these selectors in a
+        dictionary object
+
+        Utilty function used to get a content string from a Beautiful Soup
+        object and a selector. Returns an empty string if no object
+        is found for the given selector
+        """
+        selectedElems = pageObj.select(selector)
+        if selectedElems is not None and len(selectedElems) > 0:
+            return selectedElems[0].get_text()
+        return ''
+
+    def search(self, topic, site):
+        """
+        Searches a given website for a given topic and records all pages found
+        """
+        # 获取搜索结果页面 bs 对象
+        bs = self.getPage(site.searchUrl + topic)
+        try:
+            # 通过 CSS 选择器获取搜索结果对象
+            searchResults = bs.select(site.resultListing)
+        except AttributeError as e:
+            print('{}\n{}'.format(site, e))
+            return None
+        for result in searchResults:
+            # 提取搜素结果对象 URL
+            url = result.select(site.resultUrl)[0].attrs["href"]
+            # Check to see whether it's a relative or an absolute URL
+            if site.absoluteUrl:
+                bs = self.getPage(url)
+            else:
+                bs = self.getPage(site.url + url)
+            if bs is None:
+                print("Something was wrong with that page or URL. Skipping!")
+                return
+            # 通过 CSS 选择器爬取需求内容
+            title = self.safeGet(bs, site.titleTag)
+            body = self.safeGet(bs, site.bodyTag)
+            if title != '' and body != '':
+                content = Content(topic, title, body, url)
+                content.print()
+
+
+crawler = Crawler()
+
+siteData = [
+    ['O\'Reilly Media', 'http://oreilly.com', 'https://ssearch.oreilly.com/?q=',
+        'article.product-result', 'p.title a', True, 'h1', 'section#product-description'],
+    ['Reuters', 'http://reuters.com', 'http://www.reuters.com/search/news?blob=',
+     'div.search-result-content', 'h3.search-result-title a', False, 'h1', 'div.StandardArticleBody_body_1gnLA'],
+    ['Brookings', 'http://www.brookings.edu', 'https://www.brookings.edu/search/?s=',
+        'div.list-content article', 'h4.title a', True, 'h1', 'div.post-body']
+]
+sites = []
+for row in siteData:
+    sites.append(Website(row[0], row[1], row[2],
+                         row[3], row[4], row[5], row[6], row[7]))
+
+topics = ['python', 'data science']
+for topic in topics:
+    print("GETTING INFO ABOUT: " + topic)
+    for targetSite in sites:
+        crawler.search(topic, targetSite)
+
+###############################
+"""
+	Crawling Sites Through Links
+	应用：通过门户网站爬取内容
+"""
+from bs4 import BeautifulSoup
+import requests, re
+
+class Content:
+    """Common base class for all articles/pages"""
+
+    def __init__(self, topic, url, title, body):
+        self.topic = topic
+        self.title = title
+        self.body = body
+        self.url = url
+
+    def print(self):
+        """
+        Flexible printing function controls output
+        """
+        print("New article found for topic: {}".format(self.topic))
+        print("URL: {}".format(self.url))
+        print("TITLE: {}".format(self.title))
+        print("BODY:\n{}".format(self.body))
+
+
+class Website:
+
+    def __init__(self, name, url, targetPattern, absoluteUrl, titleTag, bodyTag):
+        self.name = name
+        self.url = url
+        self.targetPattern = targetPattern
+        self.absoluteUrl = absoluteUrl
+        self.titleTag = titleTag
+        self.bodyTag = bodyTag
+
+class Crawler:
+
+    def __init__(self, site):
+        self.site = site
+        self.visited = []
+
+    def getPage(self, url):
+        """
+        :param url:
+        :return:页面 bs 对象
+        """
+        try:
+            req = requests.get(url)
+        except requests.exceptions.RequestException as e:
+            print('{}\n{}'.format(url, e))
+            return None
+        return BeautifulSoup(req.content, 'html.parser')
+
+    def safeGet(self, pageObj, selector):
+        """
+        BeautifulSoup select function with a single string CSS selector for each
+        piece of information you want to collect and put all of these selectors in a
+        dictionary object
+
+        Utilty function used to get a content string from a Beautiful Soup
+        object and a selector. Returns an empty string if no object
+        is found for the given selector
+        """
+        selectedElems = pageObj.select(selector)
+        if selectedElems is not None and len(selectedElems) > 0:
+            # return '\n'.join([elem.get_text() for elem in selectedElems])
+            return selectedElems[0].get_text()
+        return ''
+
+    def parse(self, url):
+        bs = self.getPage(url)
+        if bs is not None:
+            title = self.safeGet(bs, self.site.titleTag)
+            body = self.safeGet(bs, self.site.bodyTag)
+            if title != '' and body != '':
+                content = Content(url, title, body)
+                content.print()
+
+    def crawl(self):
+        """
+        Get pages from website home page
+        """
+        bs = self.getPage(self.site.url)
+        targetPages = bs.findAll('a', href=re.compile(self.site.targetPattern))
+        for targetPage in targetPages:
+            targetPage = targetPage.attrs['href']
+            if targetPage not in self.visited:
+                self.visited.append(targetPage)
+                if not self.site.absoluteUrl:
+                    targetPage = '{}{}'.format(self.site.url, targetPage)
+                self.parse(targetPage)
+
+
+reuters = Website('Reuters', 'https://www.reuters.com', '^(/article/)',
+                  False, 'h1', 'div.StandardArticleBody_body_1gnLA')
+crawler = Crawler(reuters)
+crawler.crawl()
+###############################
+"""
+	Crawling Multiple Page Types
+"""
+class Website:
+    """Common base class for all articles/pages"""
+
+    def __init__(self, name, url, titleTag, bodyTag):
+        self.name = name
+        self.url = url
+        self.titleTag = titleTag
+        self.bodyTag = bodyTag
+
+
+class Product(Website):
+    """Contains information for scraping a product page"""
+
+    def __init__(self, name, url, titleTag, productNumber, price):
+        Website.__init__(self, name, url, TitleTag)
+        self.productNumberTag = productNumberTag
+        self.priceTag = priceTag
+
+
+class Article(Website):
+    """Contains information for scraping an article page"""
+
+    def __init__(self, name, url, titleTag, bodyTag, dateTag):
+        Website.__init__(self, name, url, titleTag)
+        self.bodyTag = bodyTag
+        self.dateTag = dateTag
+
+def parsePage(url):
+    
+    if '/ideas/' in url:
+        
+
+oreilly = Website('O\'Reilly', 'https://oreilly.com', 'h1' '')
+
+###############################
+from urllib.request import urlretrieve
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+
+html = urlopen('http://www.pythonscraping.com')
+bs = BeautifulSoup(html, 'html.parser')
+imageLocation = bs.find('a', {'id': 'logo'}).find('img')['src']
+urlretrieve (imageLocation, 'logo.jpg')
+
+###############################
+import os
+from urllib.request import urlopen
+from urllib.request import urlretrieve
+from bs4 import BeautifulSoup
+
+download_directory = 'downloaded'
+base_url = 'http://pythonscraping.com'
+
+def getAbsoluteURL(base_url, source):
+    if source.startswith('http://www.'):
+        url = 'http://{}'.format(source[11: ])
+    elif source.startswith('http://'):
+        url = source
+    elif source.startswith('www.'):
+        url = 'http://{}'.format(source[4: ])
+    else:
+        url = '{}/{}'.format(base_url, source)
+    if base_url not in url:
+        return None
+    return url
+
+def getDownloadPath(base_url, absolute_url, download_directory):
+    path = absolute_url.replace('www.', '')
+    path = path.replace(base_url, '')
+    print(path)
+    path = download_directory + path
+    directory = os.path.dirname(path)
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    return path
+
+
+html = urlopen('http://www.pythonscraping.com')
+bs = BeautifulSoup(html, 'html.parser')
+download_list = bs.find_all(src=True)
+
+for download in download_list:
+    file_url = getAbsoluteURL(base_url, download.attrs['src'])
+    if file_url is not None:
+        print(file_url)
+        try:
+            urlretrieve(file_url, getDownloadPath(base_url, file_url, download_directory))
+        except OSError as e:
+            print(e)
+
+###############################
+import csv
+
+csvFile = open('test.csv', 'w+')
+try:
+    writer = csv.writer(csvFile)
+    writer.writerow(('number', 'number plus 2', 'number times 2'))
+    for i in range(10):
+        writer.writerow( (i, i+2, i*2))
+finally:
+    csvFile.close()
+
+###############################
+import csv
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+
+html = urlopen('http://en.wikipedia.org/wiki/Comparison_of_text_editors')
+bs = BeautifulSoup(html, 'html.parser')
+table = bs.find_all('table', {'class': 'wikitable'})[0]
+rows = table.find_all('tr')
+
+csv_file = open('editors.csv', 'w+')
+writer = csv.writer(csv_file)
+try:
+    for row in rows:
+        csv_row = []
+        for cell in row.find_all(['td', 'th']):
+            csv_row.append(cell.get_text())
+        writer.writerow(csv_row)
+except Exception as e:
+    print()
+finally:
+    csv_file.close()
+
+###############################
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import datetime
+import random
+import pymysql
+import re
+
+conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock',
+                       user='root', passwd=None, db='mysql', charset='utf8')
+cur = conn.cursor()
+cur.execute("USE scraping")
+
+random.seed(datetime.datetime.now())
+
+def store(title, content):
+    cur.execute('INSERT INTO pages (title, content) VALUES ("%s", "%s")', (title, content))
+    cur.connection.commit()
+
+def getLinks(articleUrl):
+    html = urlopen('http://en.wikipedia.org'+articleUrl)
+    bs = BeautifulSoup(html, 'html.parser')
+    title = bs.find('h1').get_text()
+    content = bs.find('div', {'id':'mw-content-text'}).find('p').get_text()
+    store(title, content)
+    return bs.find('div', {'id':'bodyContent'}).findAll('a', href=re.compile('^(/wiki/)((?!:).)*$'))
+
+links = getLinks('/wiki/Kevin_Bacon')
+try:
+    while len(links) > 0:
+         newArticle = links[random.randint(0, len(links)-1)].attrs['href']
+         print(newArticle)
+         links = getLinks(newArticle)
+finally:
+    cur.close()
+    conn.close()
+
+###############################
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import re
+import pymysql
+from random import shuffle
+
+conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock',
+                       user='root', passwd='root', db='mysql', charset='utf8')
+cur = conn.cursor()
+cur.execute('USE wikipedia')
+
+def insertPageIfNotExists(url):
+    cur.execute('SELECT * FROM pages WHERE url = %s', (url))
+    if cur.rowcount == 0:
+        cur.execute('INSERT INTO pages (url) VALUES (%s)', (url))
+        conn.commit()
+        return cur.lastrowid
+    else:
+        return cur.fetchone()[0]
+
+def loadPages():
+    cur.execute('SELECT * FROM pages')
+    pages = [row[1] for row in cur.fetchall()]
+    return pages
+
+def insertLink(fromPageId, toPageId):
+    cur.execute('SELECT * FROM links WHERE fromPageId = %s AND toPageId = %s', 
+                  (int(fromPageId), int(toPageId)))
+    if cur.rowcount == 0:
+        cur.execute('INSERT INTO links (fromPageId, toPageId) VALUES (%s, %s)', 
+                    (int(fromPageId), int(toPageId)))
+        conn.commit()
+def pageHasLinks(pageId):
+    cur.execute('SELECT * FROM links WHERE fromPageId = %s', (int(pageId)))
+    rowcount = cur.rowcount
+    if rowcount == 0:
+        return False
+    return True
+
+def getLinks(pageUrl, recursionLevel, pages):
+    if recursionLevel > 4:
+        return
+
+    pageId = insertPageIfNotExists(pageUrl)
+    html = urlopen('http://en.wikipedia.org{}'.format(pageUrl))
+    bs = BeautifulSoup(html, 'html.parser')
+    links = bs.findAll('a', href=re.compile('^(/wiki/)((?!:).)*$'))
+    links = [link.attrs['href'] for link in links]
+
+    for link in links:
+        linkId = insertPageIfNotExists(link)
+        insertLink(pageId, linkId)
+        if not pageHasLinks(linkId):
+            print("PAGE HAS NO LINKS: {}".format(link))
+            pages.append(link)
+            getLinks(link, recursionLevel+1, pages)
+        
+        
+getLinks('/wiki/Kevin_Bacon', 0, loadPages()) 
+cur.close()
+conn.close()
+
+###############################
+import smtplib
+from email.mime.text import MIMEText
+
+msg = MIMEText('The body of the email is here')
+
+msg['Subject'] = 'An Email Alert'
+msg['From'] = 'ryan@pythonscraping.com'
+msg['To'] = 'webmaster@pythonscraping.com'
+
+s = smtplib.SMTP('localhost')
+s.send_message(msg)
+s.quit()
+
+###############################
+import smtplib
+from email.mime.text import MIMEText
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+import time
+
+def sendMail(subject, body):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] ='christmas_alerts@pythonscraping.com'
+    msg['To'] = 'ryan@pythonscraping.com'
+
+    s = smtplib.SMTP('localhost')
+    s.send_message(msg)
+    s.quit()
+
+bs = BeautifulSoup(urlopen('https://isitchristmas.com/'), 'html.parser')
+while(bs.find('a', {'id':'answer'}).attrs['title'] == 'NO'):
+    print('It is not Christmas yet.')
+    time.sleep(3600)
+    bs = BeautifulSoup(urlopen('https://isitchristmas.com/'), 'html.parser')
+sendMail('It\'s Christmas!', 
+         'According to http://itischristmas.com, it is Christmas!')
+
+###############################
+import csv
+from io import StringIO
+from urllib.request import urlopen
+
+data = urlopen('http://pythonscraping.com/files/MontyPythonAlbums.csv').read().decode('ascii', 'ignore')
+data_file = StringIO(data)  # 将字符串数据包装为 StringIO 对象
+csv_reader = csv.reader(data_file)
+
+for row in csv_reader:
+    print(row)
+    
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
+###############################
+
